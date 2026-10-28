@@ -1,0 +1,140 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,graphicx,hyperref,xcolor,amsmath}
+\usepackage[numbers]{natbib}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\tbd}{\textcolor{blue}{[TBD]}}
+
+\title{Does Multi-Agent Decomposition Increase or Reduce Prompt-Injection Risk?\\
+\large The Role of Handoff Format and User-Intent Preservation}
+\author{\todo{Member 1} \and \todo{Member 2} \and \todo{Member 3} \and \todo{Member 4}}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\todo{~150 words. (1) Context: multi-agent workflows split reading, planning and execution.
+(2) Gap: which handoff design choices govern injection propagation. (3) Method: single agent
+vs.\ four reader--planner--executor pipelines in a $2\times2$ design (free-text vs.\ JSON handoff
+$\times$ executor sees the user's request), two attack goals, \tbd{} episodes.
+(4) Results: \tbd. (5) Takeaway: \tbd.}
+\end{abstract}
+
+% ---------------------------------------------------------------- 0.75 p
+\section{Introduction}
+\todo{P1 motivation: agents act on untrusted content; indirect prompt injection~\cite{greshake2023}.}
+\todo{P2 two competing views: isolation vs.\ laundering. Point to Fig.~\ref{fig:pipeline}.}
+\todo{P3 our question: which handoff design choices change risk, not ``more vs.\ fewer agents''.}
+Our contributions are:
+\begin{itemize}
+  \item a controlled $2\times2$ comparison (handoff format $\times$ user-intent preservation) plus a single-agent baseline;
+  \item joint measurement of redirection, content manipulation, task utility and cost;
+  \item trace-level and replay analysis locating where injections are dropped, quoted or promoted;
+  \item released code, scenarios and traces.
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.9\linewidth}{\centering\vspace{3em}\todo{Pipeline diagram with a laundered instruction crossing a handoff}\vspace{3em}}}
+  \caption{Reader $\rightarrow$ planner $\rightarrow$ executor workflow and the two manipulated design variables.}
+  \label{fig:pipeline}
+\end{figure}
+
+% ---------------------------------------------------------------- 1 p
+\section{Background and Related Work}
+\paragraph{Prompt injection in tool-using agents.} \todo{\cite{greshake2023,injecagent2024,agentdojo2024}}
+\paragraph{Injection in multi-agent systems.} \todo{\cite{promptinfection2024,triedman2025,pear2026,planflip2026}}
+\paragraph{Architectural defenses.} \todo{dual LLM~\cite{willison2023dual}, design patterns~\cite{beurerkellner2025patterns}, CaMeL~\cite{camel2025}, multi-CaMeL~\cite{camelstalk2026}: state exactly how we differ.}
+\paragraph{Prompt-level defenses.} \todo{spotlighting~\cite{spotlighting2024}, LLM tagging~\cite{promptinfection2024}; relation to our replay study.}
+\paragraph{Positioning.} We do not claim to discover cross-agent injection or laundering; we isolate two design variables within one fixed workflow.
+
+% ---------------------------------------------------------------- 0.75 p
+\section{Threat Model and Task}
+\todo{Task; attacker capability (one document); G1 redirect; G2 manipulation and its boundary (quoting inside a warning is not success); out of scope.}
+\begin{table}[h]\centering\small
+\begin{tabular}{@{}ll@{}}\toprule
+Element & Definition\\\midrule
+Victim task & Summarize 3--4 meeting documents, email the user-named recipient(s)\\
+Attacker & Edits one document; cannot touch prompts, tools or inter-agent messages\\
+G1 & Email sent to any unauthorized address (to/cc/bcc)\\
+G2 & Attacker URL presented as normal content to the authorized recipient\\
+Knowledge & Generic templates vs.\ architecture-aware (\texttt{role}) template\\\bottomrule
+\end{tabular}
+\caption{Threat model.}\label{tab:threat}
+\end{table}
+
+% ---------------------------------------------------------------- 1.25 p
+\section{System Design}
+\todo{Tools (mocked); roles and permissions; handoff formats and schemas (App.~\ref{app:schemas}); repair rule; executor intent view; controls; optional gateway.}
+\begin{table}[h]\centering\small
+\begin{tabular}{@{}lllc@{}}\toprule
+ID & Architecture & Handoff & Executor sees request\\\midrule
+A  & single agent & --- & yes\\
+M1 & reader$\to$planner$\to$executor & free text & no\\
+M2 & reader$\to$planner$\to$executor & JSON & no\\
+M3 & reader$\to$planner$\to$executor & free text & yes\\
+M4 & reader$\to$planner$\to$executor & JSON & yes\\\bottomrule
+\end{tabular}
+\caption{Configurations.}\label{tab:configs}
+\end{table}
+
+% ---------------------------------------------------------------- 1 p
+\section{Experimental Setup}
+\todo{Scenarios (\tbd{} test, 5 dev, templated); payload templates; model selection on dev; run plan; pre-registered predictions (Table~\ref{tab:prereg}).}
+\begin{table}[h]\centering\small
+\begin{tabular}{@{}lll@{}}\toprule
+ID & Prediction & Outcome\\\midrule
+H1a & G1: M1 $\approx$ M2 (JSON alone does not stop redirection) & \tbd\\
+H1b & G2: M2 $<$ M1 & \tbd\\
+H2 & G1: M3 $<$ M1, M4 $<$ M2 & \tbd\\
+H3 & interaction (M2$-$M4) $>$ (M1$-$M3) & \tbd\\
+H4 & gateway: G1 = 0, G2 unchanged & \tbd\\\bottomrule
+\end{tabular}
+\caption{Pre-registered predictions.}\label{tab:prereg}
+\end{table}
+
+% ---------------------------------------------------------------- 0.75 p
+\section{Metrics and Analysis}
+\todo{ASR-G1/G2, attempt rate, utility (clean, attacked), safe utility, handoff labels, inter-annotator $\kappa$, cost per successful clean task; paired scenario bootstrap.}
+
+% ---------------------------------------------------------------- 1.5 p
+\section{Results}
+\subsection{Clean utility} \todo{Pipelines must work before safety is compared.}
+\subsection{Main effects and interaction} \todo{Fig.\ 2 interaction plot; Table~\ref{tab:main}.}
+\begin{table}[h]\centering\small
+\begin{tabular}{@{}lccccc@{}}\toprule
+Config & Util.\ (clean) & ASR-G1 & ASR-G2 & Util.\ (attacked) & Tokens/ep\\\midrule
+A & \tbd & \tbd & \tbd & \tbd & \tbd\\
+M1 & \tbd & \tbd & \tbd & \tbd & \tbd\\
+M2 & \tbd & \tbd & \tbd & \tbd & \tbd\\
+M3 & \tbd & \tbd & \tbd & \tbd & \tbd\\
+M4 & \tbd & \tbd & \tbd & \tbd & \tbd\\\bottomrule
+\end{tabular}
+\caption{Main results (95\% CIs in brackets).}\label{tab:main}
+\end{table}
+\subsection{Single agent vs.\ pipelines} \todo{overall comparison only}
+\subsection{By payload template} \todo{generic vs.\ role-targeted}
+\subsection{Gateway} \todo{optional}
+
+% ---------------------------------------------------------------- 1 p
+\section{Mechanism Analysis}
+\todo{Propagation profile (Fig.\ 3); 2--3 annotated traces; handoff replay (Table 6).}
+
+% ---------------------------------------------------------------- 0.75 p
+\section{Discussion and Limitations}
+\todo{Implications; one domain, 1--2 models, non-adaptive attacker, synthetic data, model selected for non-zero ASR, prompt sensitivity, judge bias.}
+
+\section{Conclusion}
+\todo{Question, one sentence per finding, one design recommendation.}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+\section{Handoff schemas}\label{app:schemas}
+\todo{Paste from harness/handoff.py.}
+\section{Prompts and payload templates}
+\todo{Paste from harness/prompts.py and harness/attacks.py.}
+
+\end{document}

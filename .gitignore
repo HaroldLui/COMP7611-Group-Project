@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Results: commit summaries + compressed raw logs, not the raw .jsonl (can exceed GitHub's file limits).
+# Before committing a run:  gzip -k results/<run>/episodes.jsonl
+results/*/episodes.jsonl
+# Offline fake-model runs are not data
+results/demo/
+results/fake-*/
+
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.pdf
