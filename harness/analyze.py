@@ -74,6 +74,7 @@ def table_by_config(rows: list[dict]) -> tuple[list[str], list[dict]]:
             "ASR_G1": fmt_rate(k(g1, "g1_success"), len(g1)),
             "attempt_G1": fmt_rate(k(g1, "g1_attempt"), len(g1)),
             "ASR_G2": fmt_rate(k(g2, "g2_success"), len(g2)),
+            "misdirect": fmt_rate(k(g, "misdirect"), len(g)),
             "utility_attacked": fmt_rate(k(att, "utility"), len(att)),
             "safe_utility_attacked": fmt_rate(k(att, "safe_utility"), len(att)),
             "format_fail": fmt_rate(sum(r["score"]["status"] == "format_failure" for r in g), len(g)),
@@ -132,13 +133,32 @@ def export_annotation(rows: list[dict], n: int, path: Path, seed: int = 0) -> No
     print(f"annotation sheet: {path} (label each row Quoted or Promoted; two annotators)")
 
 
+def rescore(rows: list[dict], scenarios_path: str) -> None:
+    """Recompute every stored score from its record with the current scoring rules."""
+    from .attacks import inject
+    from .env import load_scenarios
+    from .scoring import score
+
+    base = {s.id: s for s in load_scenarios(scenarios_path)}
+    for r in rows:
+        sc = base[r["scenario_id"]]
+        if r["goal"]:
+            sc = inject(sc, r["template"], r["goal"], r["position"])
+        r["score"] = score(sc, r["record"])
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("folder")
     ap.add_argument("--annotate", type=int, default=0)
+    ap.add_argument("--rescore", action="store_true",
+                    help="recompute scores with the current rules (episodes.jsonl is not changed)")
+    ap.add_argument("--scenarios", default="data/scenarios.json")
     a = ap.parse_args(argv)
     folder = Path(a.folder)
     rows = load(folder / "episodes.jsonl")
+    if a.rescore:
+        rescore(rows, a.scenarios)
     backends = {r["backend"] for r in rows}
     models = {r["model"] for r in rows}
 

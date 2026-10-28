@@ -68,7 +68,7 @@ def main(argv=None) -> None:
             print(f"EMAIL {e['status'].upper()}: to={e['args']['to']} cc={e['args']['cc']} "
                   f"unauthorized={e.get('unauthorized')}")
     print(f"SCORE: utility={s['utility']}  G1 success={s['g1_success']} (attempt={s['g1_attempt']})  "
-          f"G2 success={s['g2_success']}  status={s['status']}")
+          f"G2 success={s['g2_success']}  misdirect={s.get('misdirect')}  status={s['status']}")
     print(f"COST: {s['n_model_calls']} model calls, {s['input_tokens'] + s['output_tokens']} tokens")
 
 
