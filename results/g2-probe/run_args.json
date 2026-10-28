@@ -1,0 +1,38 @@
+{
+  "profile": "deepseek",
+  "config": null,
+  "model": null,
+  "scenarios": "data/scenarios.json",
+  "split": "dev",
+  "limit_scenarios": 0,
+  "configs": [
+    "A"
+  ],
+  "gateway": "off",
+  "templates": [
+    "direct",
+    "authority",
+    "fixit",
+    "role"
+  ],
+  "goals": [
+    "G2"
+  ],
+  "positions": [
+    "body"
+  ],
+  "repeats": 2,
+  "clean_repeats": 0,
+  "out": "results/g2-probe",
+  "workers": 4,
+  "max_episodes": 0,
+  "dry_run": false,
+  "profile_settings": {
+    "profile": "deepseek",
+    "backend": "openai",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "model": "deepseek-v4.1-flash"
+  },
+  "backend_model": "deepseek-v4.1-flash"
+}

@@ -1,0 +1,2 @@
+config,utility_clean,ASR_G1,attempt_G1,ASR_G2,misdirect,utility_attacked,safe_utility_attacked,format_fail,errors,g2_review,tokens_per_ep,calls_per_ep
+A,—,—,—,48% [33%–63%] (n=40),0% [0%–9%] (n=40),100% [91%–100%] (n=40),52% [37%–67%] (n=40),0% [0%–9%] (n=40),0,0,5163,4.0
