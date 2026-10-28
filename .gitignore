@@ -16,3 +16,7 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.pdf
+# Local-only
+.DS_Store
+.claude/
+.vscode/

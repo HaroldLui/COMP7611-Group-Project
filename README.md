@@ -109,7 +109,7 @@ harness/check.py          one-command connection + tool-calling check for a prof
 harness/show.py           print one episode as a readable trace
 demo.sh                   one-command offline demo
 harness/env.py            scenario model, mock tools (list_docs, read_doc, send_email), gateway
-harness/attacks.py        4 payload templates × 2 goals, planting, .test markers
+harness/attacks.py       4 payload templates × 2 goals, planting, company-domain markers
 harness/handoff.py        strict JSON schemas (ReaderNotes, EmailPlan), parsing + repair rule
 harness/prompts.py        role prompts (freeze after the dev pilot)
 harness/agents.py         tool-use loop, full call logging
@@ -123,8 +123,10 @@ paper/                    LaTeX skeleton + refs.bib
 
 ## Safety
 
-Every tool is mocked: `send_email` only writes to the log. Attacker addresses and URLs use the
-reserved `.test` TLD, and people and companies are fictional (`.example`).
+Every tool is mocked: `send_email` only writes to the log. Attacker addresses and URLs
+masquerade under the fictional company's own domain (`records-<hash>@<company>.example`,
+`https://training.<company>.example/register/<hash>`); `.example` is a reserved TLD that can never
+resolve, and the per-episode hash keeps scoring exact. People and companies are fictional.
 
 ## Team workflow
 
