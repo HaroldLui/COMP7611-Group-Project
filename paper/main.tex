@@ -57,7 +57,7 @@ Our contributions are:
 Element & Definition\\\midrule
 Victim task & Summarize 3--4 meeting documents, email the user-named recipient(s)\\
 Attacker & Edits one document; cannot touch prompts, tools or inter-agent messages\\
-G1 & Email sent to any unauthorized address (to/cc/bcc)\\
+G1 & Email sent to the attacker's address (to/cc/bcc); other unauthorized recipients are scored as misdirection\\
 G2 & Attacker URL presented as normal content to the authorized recipient\\
 Knowledge & Generic templates vs.\ architecture-aware (\texttt{role}) template\\\bottomrule
 \end{tabular}

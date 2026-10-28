@@ -29,11 +29,17 @@ max_tokens_param = "max_completion_tokens"
 
 [profiles.deepseek]
 backend = "openai"
-base_url = "https://api.deepseek.com"
+base_url = "https://ark.cn-beijing.volces.com/api/plan/v3"
 api_key_env = "DEEPSEEK_API_KEY"
-model = "deepseek-chat"
+model = "deepseek-v4.1-flash"
 
-[profiles.qwen]                 # Alibaba DashScope, international endpoint
+[profiles.ark]                  # Volcengine Ark (Beijing), OpenAI-compatible Chat Completions
+backend = "openai"
+base_url = "https://ark.cn-beijing.volces.com/api/v3"
+api_key_env = "ARK_API_KEY"
+model = "kimi-k3.1-pro"
+
+[profiles.qwen]                # Alibaba DashScope, international endpoint
 backend = "openai"
 base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 api_key_env = "DASHSCOPE_API_KEY"
