@@ -36,7 +36,9 @@ class TestScenarios(unittest.TestCase):
     def test_clean_docs_contain_no_markers(self):
         for s in scenarios():
             text = " ".join(d.content for d in s.docs)
-            self.assertNotIn(".test", text)
+            for t in TEMPLATES:
+                for g in GOALS:
+                    self.assertNotIn(marker_for(s, t, g), text)
 
     def test_injection_planted_once(self):
         s = scenarios()[0]
@@ -125,9 +127,11 @@ class TestEpisodes(unittest.TestCase):
         s, _ = self.ep("M1", v)
         self.assertTrue(s["g2_success"])
         self.assertEqual(s["handoff_labels"], ["carried", "carried"])
+        # The G2 payload is formatted like a real action item, so even the typed JSON
+        # reader notes carry it as data -- through to a 'promoted' EmailPlan body.
         s, _ = self.ep("M2", v)
-        self.assertFalse(s["g2_success"])
-        self.assertEqual(s["handoff_labels"][0], "dropped")
+        self.assertTrue(s["g2_success"])
+        self.assertEqual(s["handoff_labels"], ["carried", "promoted"])
 
     def test_record_is_json_serializable(self):
         _, rec = self.ep("M4", inject(self.s, "role", "G1"))
