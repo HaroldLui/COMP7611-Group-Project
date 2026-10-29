@@ -30,6 +30,37 @@ from .pipeline import CONFIGS, run_episode
 from .scoring import score
 
 
+def provenance() -> dict:
+    """What produced a run: code commit, whether the experiment code had local edits, versions."""
+    import platform
+    import subprocess
+    from importlib import metadata
+
+    root = Path(__file__).resolve().parents[1]
+
+    def git(*a):
+        try:
+            return subprocess.run(["git", *a], cwd=root, capture_output=True, text=True,
+                                  check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            return None
+
+    def version(pkg):
+        try:
+            return metadata.version(pkg)
+        except metadata.PackageNotFoundError:
+            return None
+
+    return {
+        "code_commit": git("rev-parse", "HEAD"),
+        "code_dirty": bool(git("status", "--porcelain", "--", "harness", "data", "configs")),
+        "python": platform.python_version(),
+        "openai_sdk": version("openai"),
+        "anthropic_sdk": version("anthropic"),
+        "pydantic": version("pydantic"),
+    }
+
+
 def build_plan(args) -> list[dict]:
     scenarios = [s for s in load_scenarios(args.scenarios) if s.split == args.split]
     if args.limit_scenarios:
@@ -70,6 +101,8 @@ def main(argv=None) -> None:
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--max-episodes", type=int, default=0, help="stop after N new episodes (0 = all)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-mixed-versions", action="store_true",
+                    help="resume a folder even if it was produced by a different code commit")
     args = ap.parse_args(argv)
     for name in ("configs", "templates", "goals", "positions"):
         setattr(args, name, [x for x in getattr(args, name).split(",") if x])
@@ -101,8 +134,19 @@ def main(argv=None) -> None:
         profile["model"] = args.model
     backend = make_backend(profile)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "run_args.json").write_text(json.dumps(
-        vars(args) | {"profile_settings": public(profile), "backend_model": backend.model}, indent=2))
+    prov = provenance()
+    prev_path = out / "run_args.json"
+    if prev_path.exists() and not args.allow_mixed_versions:
+        prev = json.loads(prev_path.read_text()).get("provenance", {})
+        if prev and prev.get("code_commit") != prov["code_commit"]:
+            ap.error(f"{out} was produced by commit {prev.get('code_commit')}, but the code is now "
+                     f"{prov['code_commit']}. Use a new --out folder (or --allow-mixed-versions).")
+    if prov["code_dirty"]:
+        print("warning: uncommitted changes in harness/, data/ or configs/; this run cannot be "
+              "reproduced from a commit", file=sys.stderr)
+    prev_path.write_text(json.dumps(
+        vars(args) | {"profile_settings": public(profile), "backend_model": backend.model,
+                      "provenance": prov}, indent=2))
     lock = threading.Lock()
 
     def work(p):

@@ -121,6 +121,27 @@ class TestRequesterAndFlags(unittest.TestCase):
                 self.assertIsNone(FLAG_RE.search(text), (t, g))
 
 
+class TestMissingMetrics(unittest.TestCase):
+    def test_score_keys_match_scorer(self):
+        from harness.scoring import SCORE_KEYS
+        s = scenarios()[0]
+        rec = run_episode(s, CONFIGS["A"], FakeBackend(), False)
+        self.assertEqual(set(score(s, rec)), set(SCORE_KEYS))
+
+    def test_unscored_metric_is_not_zero(self):
+        from harness.analyze import MISSING, missing_metrics, table_by_config
+        s = scenarios()[0]
+        rec = run_episode(s, CONFIGS["A"], FakeBackend(), False)
+        sc = score(s, rec)
+        del sc["flagged"]  # as in a folder scored before the metric existed
+        rows = [{"config": "A", "gateway": False, "goal": None, "template": None,
+                 "scenario_id": s.id, "score": sc}]
+        self.assertEqual(missing_metrics(rows), ["flagged"])
+        _, table = table_by_config(rows)
+        self.assertEqual(table[0]["flagged_clean"], MISSING)
+        self.assertNotEqual(table[0]["utility_clean"], MISSING)
+
+
 class TestEpisodes(unittest.TestCase):
     """The fake model is gullible by design; these check scoring and wiring, not findings."""
 
