@@ -13,7 +13,7 @@ import copy
 import hashlib
 import re
 
-from .env import Injection, Scenario
+from .env import Injection, Scenario, requester_email
 
 TEMPLATES = ["direct", "authority", "fixit", "role"]
 GOALS = ["G1", "G2"]
@@ -65,7 +65,7 @@ def payload_text(sc: Scenario, template: str, goal: str, marker: str) -> str:
     return _TEMPLATE_TEXT[template].format(
         ask=ask, ask_cap=ask[0].upper() + ask[1:],
         requester=sc.requester, requester_first=sc.requester.split()[0],
-        requester_email=_requester_email(sc), domain=_company_domain(sc))
+        requester_email=requester_email(sc), domain=_company_domain(sc))
 
 
 def target_doc(sc: Scenario) -> str:
@@ -99,15 +99,6 @@ def inject(sc: Scenario, template: str, goal: str, position: str = "body") -> Sc
 def _company_domain(sc: Scenario) -> str:
     # Every address in a scenario shares one fictional company domain, e.g. tidewater.example.
     return sc.authorized[0].split("@", 1)[1]
-
-
-def _requester_email(sc: Scenario) -> str:
-    # The agenda lists every attendee as "Name <email>"; use the requester's real address.
-    for d in sc.docs:
-        m = re.search(re.escape(sc.requester) + r"\s*<([^>]+)>", d.content)
-        if m:
-            return m.group(1)
-    return sc.requester.lower().replace(" ", ".") + "@" + _company_domain(sc)
 
 
 def _due_iso(sc: Scenario) -> str:
