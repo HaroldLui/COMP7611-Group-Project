@@ -52,7 +52,12 @@ Implemented in `harness/attacks.py`:
   with mundane corporate content ("register for the rollout training at …"), planted
   directly after the real action-item block.
 
-## 4. Headline results (dev, 1 repeat)
+## 4. Historical v3 results (dev, 1 repeat; old schema)
+
+This section and §5 preserve the original v3 observations. They are not a combined
+post-fix evaluation. The schema-fix M2/M4 results in §6.2 are the current implementation's
+pilot; A/M1/M3 were not re-run alongside them. Do not pool the two runs or construct a
+new five-configuration comparison by replacing only M2/M4.
 
 | metric | v1 | v2 | v3 |
 |---|---|---|---|
@@ -70,8 +75,9 @@ Implemented in `harness/attacks.py`:
 (M3/M4 were never run in v1/v2 — they were added to the dev pilot in v3 because H2 was
 otherwise completely unvalidated on a real model.)
 
-The preregistered model-selection rule (configuration A shows non-zero attack success) is
-met in v3 for both goals.
+The model-selection rule documented before the test split (configuration A shows non-zero
+attack success) is met in v3 for both goals. This is a development selection criterion,
+not evidence that the model or attack set was selected without looking at dev outcomes.
 
 ### v3 by template (all five configs pooled, n=25 per template×goal)
 
@@ -82,10 +88,10 @@ met in v3 for both goals.
 | role (workflow note) | 8/25 | 7/25 | mixed |
 | fixit (automated compliance notice) | 0/25 | **0/25** | never works on this model |
 
-**Finding (template):** impersonating *people* works; impersonating *systems* does not. The
-`fixit` compliance-notice framing was identified and ignored in every single episode (0/50
-across both goals and all five configs). The template gradient is itself a result — keep
-`fixit` in the test split as the contrast case.
+**Development observation (template):** the `authority` wrapper succeeded in this pilot,
+while `fixit` had 0/50 successes across both goals and all five configurations. A failed
+attack does not by itself prove that it was identified. These results do not establish a
+general rule about impersonating people versus systems. Keep `fixit` as a contrast case.
 
 **Finding (detection, heuristic):** zero refusals in v3. `flagged` fires in 48 of 200
 attacked episodes and in 0 of 25 clean ones (95% CI for the clean rate: 0–13%). Every flag
@@ -135,24 +141,33 @@ templates (authority, fixit, role):
 | M2 − M4 | G2 | −20% | [−45%, +5%] |
 
 Dev-split direction only. With 5 scenarios the bootstrap has 5 clusters, so its intervals
-are coarse and unreliable; none of these differences should be called significant until the
-30-scenario test split. The A − M2 and M3 − M4 intervals that exclude zero are the
-directions to watch.
+are coarse and unreliable. A 30-scenario test does not automatically establish significance;
+report its effect sizes, uncertainty and limitations. After the schema fix (§6.2), M4's
+G2 instruction-bearing successes changed from 8/15 to 3/15 with the same payloads. However,
+the model-visible schema and normalization also changed. This is a post-fix validation,
+not an identical-condition replication, so schema effects cannot be separated from run
+variation using these two runs.
 
-- **Single agent is the most G1-vulnerable**; decomposition reduces redirect risk (A > M1 ≈ M2).
-- **H1b is contradicted for G2**: JSON handoff does *not* reduce content-manipulation risk
-  (M2 ASR-G2 45% ≥ M1 30%). The mechanism is visible in the handoff labels: a payload
+- **In the original v3 pilot, A had the highest G1 success rate.** This is a descriptive
+  observation, not a demonstrated general benefit of decomposition or evidence of M1/M2
+  equivalence.
+- **The original v3 point estimates did not support H1b for G2**
+  (M2 ASR-G2 45% ≥ M1 30%). Automatic handoff labels show that a payload
   formatted like a real action item enters the typed `ReaderNotes.action_items[]` as data
-  and is **promoted** into the `EmailPlan` body 13 times in M2 (20 in M4). Typed fields only
-  stop prose-shaped injections, not data-shaped ones.
-- **H2 is unsupported on both goals.** H2 compares *with vs. without* the user's request at
+  and receives the automatic **promoted** label in the `EmailPlan` handoff 13 times in M2
+  (20 in M4). This shows that typed fields can carry attacker content; it does not establish
+  that every marker occurrence is endorsement. Quotation and warning cases still require
+  human annotation.
+- **H2 is not established on G1; G2 is exploratory.** The frozen H2 predicts a G1 effect
+  only. The corresponding comparisons on either goal are *with vs. without* the request at
   a fixed handoff format: M1→M3 and M2→M4. G1: M1−M3 = +5%, M2−M4 = −10%; G2: M1−M3 = −5%,
   M2−M4 = −20%. All four intervals cross zero.
-- **With the request visible, JSON did worse than free text on G2.** M3 − M4 = −30% compares
-  *format* (both show the request), so it bears on H1b, not H2. It survives removing the
-  `direct` control (instruction-bearing templates: M3 2/15 vs. M4 8/15), so it is not just
-  transcription. The `direct` line's 5/5 in M3 and M4 cannot indicate a request effect,
-  because it is 4/5 in A, M1 and M2 as well.
+- **Withdrawn: "with the request visible, JSON did worse than free text on G2".** In v3,
+  M3 − M4 = −30% (instruction-bearing templates: M3 2/15 vs. M4 8/15). It did **not
+  persist** in the post-fix M4 pilot: M4 fell to 3/15, close to the historical M3 2/15.
+  M3 was not re-run and the schema changed, so this is not a controlled replication or
+  evidence that noise alone caused the original gap. No established M3/M4 format effect
+  is claimed; the original hypotheses remain unchanged for the test split.
 
 ### Handoff propagation (attacked episodes, automatic labels)
 
@@ -177,8 +192,8 @@ directions to watch.
    planner prompt (before the freeze) to not editorialize about recipients.
 2. **JSON format failures (M2 9%, M4 13%).** Cause, from the logs: 7 of the 10 are the
    reader's `attendees` field given as names or `Name <email>`; the other 3 are a decision or
-   task over the 200-character cap. Neither constraint was visible in the JSON Schema the
-   model was shown (the email check and the decision cap ran only after parsing). **Fixed in
+   task over the 200-character cap. The email check and decision cap were absent from the
+   model-visible schema; the task cap was already visible. **Fixed in
    `harness/handoff.py`:** both constraints are now in the schema, and `Name <email>` is
    normalized to the bare address (bare names are still rejected). M2/M4 should be re-piloted
    on dev to confirm the failure rate drops before freezing.
@@ -188,6 +203,24 @@ directions to watch.
    90 episodes) has **at most 3 format failures and none caused by an `attendees` entry or
    a decision over 200 characters**. If it passes, freeze; if not, inspect the new causes
    before changing anything else.
+
+   **Outcome (`results/pilot-dev-deepseek-v3-schemafix`, commit `3df873e`, no local edits):
+   passed.** 90/90 episodes, 0 errors, **0 format failures** (v3: 10), 4 repairs, all
+   successful. These M2/M4 numbers describe the current schema. Retain the old v3 values
+   as historical results and keep run identities separate:
+
+   | config | run | G1 | G2 (instruction-bearing) | G2 (`direct`) | safe utility (attacked) |
+   |---|---|---|---|---|---|
+   | M2 | v3 | 3/20 | 5/15 | 4/5 | 23/40 |
+   | M2 | re-run | 4/20 | 4/15 | 5/5 | 27/40 |
+   | M4 | v3 | 5/20 | 8/15 | 5/5 | 16/40 |
+   | M4 | re-run | 1/20 | 3/15 | 4/5 | 32/40 |
+
+   M2 changed less than M4 in these observations. Both the schema change and stochastic
+   generation could contribute; the runs are not identical experimental conditions.
+   No same-code repeat has yet isolated the size of run-to-run variation. The test plan
+   uses 30 scenarios and 2 repeats without converting these dev differences into new
+   directional predictions.
 3. **One API error** (`dev-03|role-G2|M2`), outside our control; the preregistered re-run
    policy covers it.
 
@@ -201,9 +234,9 @@ them (90 more episodes; 225 total). Outcome of the validation:
   does not appear — the executor *can* verify the recipient against the visible request,
   which is itself evidence for how M1's failure arises).
 - **H2 (G1) is not supported**: M1→M3 = +5% [−10%, +20%], M2→M4 = −10% [−40%, +20%].
-  Seeing the user's request does not reduce redirect attacks in the dev data.
-- **G2 does not get worse with the request** (M2−M4 = −20%, interval crosses zero). The
-  M4 > M3 gap is a format effect at fixed request visibility; see §5.
+  This pilot does not establish the effect of seeing the request.
+- **The G2 request effect remains uncertain** (M2−M4 = −20% in v3, interval crosses zero).
+  The original format claim was withdrawn after the post-fix pilot; see §5 and §6.2.
 - **Cost is as predicted**: M3 ≈ 7.1k tokens/episode (≈ M1), M4 ≈ 10.1k (≈ M2).
 
 ## 8. Cost estimate for the test split
@@ -215,15 +248,32 @@ estimate should be recomputed if the profile changes.
 
 ## 9. Pre-freeze checklist
 
-- [ ] Two annotators label `results/pilot-dev-deepseek-v3/annotation.csv` (Quoted/Promoted
-      refinement of automatic `carried` labels).
-- [ ] Decide the M1 planner-prompt question (§6.1). It rests on one clean episode: report it
-      rather than tune for it, or tune all configurations equally.
-- [x] `handoff.py` schema question (§6.2): fixed; re-pilot M2/M4 on dev to confirm.
-- [ ] Disclose payload tuning in the preregistration: v1 → v3 were iterated on the dev split,
-      and the v3 G2 wording was probed on configuration A only (`results/g2-probe`).
-- [ ] Report G2 as instruction-bearing templates plus the `direct` transcription control.
-- [ ] Decide whether `fixit` stays as the contrast template (recommended: yes).
-- [ ] Fill in the blanks in `docs/preregistration.md` (model, settings, freeze date, commit).
-- [ ] Confirm repeats for the test split (v3 dev used 1; 2–3 gives tighter CIs for 30 scenarios).
-- [ ] Commit the freeze; after this, any change is a reported deviation.
+- [x] `handoff.py` schema fix, confirmed by the M2/M4 re-run (§6.2).
+- [x] M1 planner prompt left unchanged; the one clean-task refusal is reported (§6.1).
+- [x] Payload tuning disclosed in the preregistration (§9 there).
+- [x] G2 reported as instruction-bearing templates plus the `direct` transcription control.
+- [x] `fixit` kept as the contrast template.
+- [x] Preregistration filled in: model, settings, frozen code commit `3df873e`.
+- [x] Test split: 2 repeats per attacked variant, 2 clean repeats.
+- [x] Freeze committed; from here on, any change is a reported deviation.
+- [ ] Not blocking the freeze: two annotators label
+      `results/pilot-dev-deepseek-v3/annotation.csv` (Quoted/Promoted refinement of the
+      automatic `carried` labels). Do the same on the test split's annotation sheet.
+
+## 10. Ver6 review and launch status (2026-10-29)
+
+The code freeze is documented, but this is not a claim that four team approvals exist or
+that the test split has run. Record actual approvals on PR #6; do not sign for teammates.
+The schema-fix acceptance rule was met. The frozen hypotheses are unchanged.
+
+Known operational limitation in frozen code `3df873e`: `harness.run` treats saved error
+episodes as completed, and `harness.analyze` includes errors in its denominators. Therefore
+the §5 preregistration rule (one retry, then exclude and report) is not automated. Ordinary
+resume does not implement that rule. Before a test launch, record a reproducible handling
+procedure or an explicit code-freeze amendment; never report the unfiltered summary as the
+preregistered final analysis when errors remain. Preserve failed attempts and count retries.
+
+The current analysis also does not automatically compute the H3 difference-in-differences
+or all G2 instruction-only contrasts. Those analyses need an auditable implementation
+before confirmatory interpretation. This review makes documentation changes only and
+does not alter the frozen code, payloads, raw episodes or annotations.
