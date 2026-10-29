@@ -6,9 +6,8 @@
   "split": "dev",
   "limit_scenarios": 0,
   "configs": [
-    "A",
-    "M1",
-    "M2"
+    "M3",
+    "M4"
   ],
   "gateway": "off",
   "templates": [
