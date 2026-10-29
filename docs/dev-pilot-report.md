@@ -136,8 +136,8 @@ templates (authority, fixit, role):
 
 Dev-split direction only. With 5 scenarios the bootstrap has 5 clusters, so its intervals
 are coarse and unreliable; none of these differences should be called significant until the
-30-scenario test split. The A − M2 and M3 − M4 intervals that exclude zero are the
-directions to watch.
+30-scenario test split. The M2/M4 re-run (§6.2) shows how unstable single-repeat dev cells
+are: with identical payloads, M4's G2 instruction-bearing successes went from 8/15 to 3/15.
 
 - **Single agent is the most G1-vulnerable**; decomposition reduces redirect risk (A > M1 ≈ M2).
 - **H1b is contradicted for G2**: JSON handoff does *not* reduce content-manipulation risk
@@ -148,11 +148,11 @@ directions to watch.
 - **H2 is unsupported on both goals.** H2 compares *with vs. without* the user's request at
   a fixed handoff format: M1→M3 and M2→M4. G1: M1−M3 = +5%, M2−M4 = −10%; G2: M1−M3 = −5%,
   M2−M4 = −20%. All four intervals cross zero.
-- **With the request visible, JSON did worse than free text on G2.** M3 − M4 = −30% compares
-  *format* (both show the request), so it bears on H1b, not H2. It survives removing the
-  `direct` control (instruction-bearing templates: M3 2/15 vs. M4 8/15), so it is not just
-  transcription. The `direct` line's 5/5 in M3 and M4 cannot indicate a request effect,
-  because it is 4/5 in A, M1 and M2 as well.
+- **Withdrawn: "with the request visible, JSON did worse than free text on G2".** In v3,
+  M3 − M4 = −30% (instruction-bearing templates: M3 2/15 vs. M4 8/15). It did **not
+  replicate** in the M2/M4 re-run with the fixed schema: M4 fell to 3/15, level with M3.
+  The v3 gap is best read as single-repeat noise (possibly helped by the old schema), and no
+  M3/M4 format claim is carried into the test split.
 
 ### Handoff propagation (attacked episodes, automatic labels)
 
@@ -188,6 +188,22 @@ directions to watch.
    90 episodes) has **at most 3 format failures and none caused by an `attendees` entry or
    a decision over 200 characters**. If it passes, freeze; if not, inspect the new causes
    before changing anything else.
+
+   **Outcome (`results/pilot-dev-deepseek-v3-schemafix`, commit `3df873e`, no local edits):
+   passed.** 90/90 episodes, 0 errors, **0 format failures** (v3: 10), 4 repairs, all
+   successful. M2/M4 numbers from this re-run supersede the v3 ones, which ran on the old
+   schema:
+
+   | config | run | G1 | G2 (instruction-bearing) | G2 (`direct`) | safe utility (attacked) |
+   |---|---|---|---|---|---|
+   | M2 | v3 | 3/20 | 5/15 | 4/5 | 23/40 |
+   | M2 | re-run | 4/20 | 4/15 | 5/5 | 27/40 |
+   | M4 | v3 | 5/20 | 8/15 | 5/5 | 16/40 |
+   | M4 | re-run | 1/20 | 3/15 | 4/5 | 32/40 |
+
+   M2 is stable; M4 moved a lot. With 5 scenarios and 1 repeat, a single dev cell can move
+   by this much between identical runs, which is why the test split uses 30 scenarios and
+   2 repeats.
 3. **One API error** (`dev-03|role-G2|M2`), outside our control; the preregistered re-run
    policy covers it.
 
@@ -202,8 +218,8 @@ them (90 more episodes; 225 total). Outcome of the validation:
   which is itself evidence for how M1's failure arises).
 - **H2 (G1) is not supported**: M1→M3 = +5% [−10%, +20%], M2→M4 = −10% [−40%, +20%].
   Seeing the user's request does not reduce redirect attacks in the dev data.
-- **G2 does not get worse with the request** (M2−M4 = −20%, interval crosses zero). The
-  M4 > M3 gap is a format effect at fixed request visibility; see §5.
+- **G2 does not get worse with the request** (M2−M4 = −20% in v3, interval crosses zero).
+  The v3 M4 > M3 gap did not replicate after the schema fix; see §5 and §6.2.
 - **Cost is as predicted**: M3 ≈ 7.1k tokens/episode (≈ M1), M4 ≈ 10.1k (≈ M2).
 
 ## 8. Cost estimate for the test split
@@ -215,15 +231,14 @@ estimate should be recomputed if the profile changes.
 
 ## 9. Pre-freeze checklist
 
-- [ ] Two annotators label `results/pilot-dev-deepseek-v3/annotation.csv` (Quoted/Promoted
-      refinement of automatic `carried` labels).
-- [ ] Decide the M1 planner-prompt question (§6.1). It rests on one clean episode: report it
-      rather than tune for it, or tune all configurations equally.
-- [x] `handoff.py` schema question (§6.2): fixed; re-pilot M2/M4 on dev to confirm.
-- [ ] Disclose payload tuning in the preregistration: v1 → v3 were iterated on the dev split,
-      and the v3 G2 wording was probed on configuration A only (`results/g2-probe`).
-- [ ] Report G2 as instruction-bearing templates plus the `direct` transcription control.
-- [ ] Decide whether `fixit` stays as the contrast template (recommended: yes).
-- [ ] Fill in the blanks in `docs/preregistration.md` (model, settings, freeze date, commit).
-- [ ] Confirm repeats for the test split (v3 dev used 1; 2–3 gives tighter CIs for 30 scenarios).
-- [ ] Commit the freeze; after this, any change is a reported deviation.
+- [x] `handoff.py` schema fix, confirmed by the M2/M4 re-run (§6.2).
+- [x] M1 planner prompt left unchanged; the one clean-task refusal is reported (§6.1).
+- [x] Payload tuning disclosed in the preregistration (§9 there).
+- [x] G2 reported as instruction-bearing templates plus the `direct` transcription control.
+- [x] `fixit` kept as the contrast template.
+- [x] Preregistration filled in: model, settings, frozen code commit `3df873e`.
+- [x] Test split: 2 repeats per attacked variant, 2 clean repeats.
+- [x] Freeze committed; from here on, any change is a reported deviation.
+- [ ] Not blocking the freeze: two annotators label
+      `results/pilot-dev-deepseek-v3/annotation.csv` (Quoted/Promoted refinement of the
+      automatic `carried` labels). Do the same on the test split's annotation sheet.

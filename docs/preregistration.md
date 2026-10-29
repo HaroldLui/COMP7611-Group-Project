@@ -1,16 +1,19 @@
 # Pre-registration (freeze before the test-split runs)
 
-Fill in the blanks, get all four members to agree, and commit this file **before** running
-`--split test`. Anything changed afterwards is reported as a deviation in the paper.
+**Frozen.** Do not edit §1–§9 from here on. Anything changed afterwards is added to the
+deviations log (§10) and reported in the paper.
 
-- Frozen on: `____-__-__`  Commit: `_______` (fill in at the freeze)
+- Frozen on: `2026-10-29`. **Frozen code: commit `3df873e`** (`harness/`, `data/`,
+  `configs/`); this document is frozen by the commit that adds this line.
 - Profile (`configs/models.toml`): `deepseek`  Model: `deepseek-v4.1-flash`
   Provider: Volcengine Ark, OpenAI-compatible endpoint (`base_url` in the profile)
 - Settings: temperature unset (provider default); max_tokens 4096 per call (`max_tokens`
-  parameter); reasoning/thinking settings unset (provider default); openai SDK version
-  `____` (copy from the re-run's `run_args.json` → `provenance.openai_sdk`)
-- Every run folder records its code commit in `run_args.json` → `provenance`; test-split
-  results count only if that commit is the frozen one and `code_dirty` is false.
+  parameter); reasoning/thinking settings unset (provider default). Environment of the
+  confirming dev run: openai SDK 3.40.0, pydantic 2.14.1, Python 3.14.6.
+- Every run folder records its code commit in `run_args.json` → `provenance`. A test-split
+  run counts only if `code_dirty` is false and its commit has the frozen code, i.e. this
+  prints nothing:
+  `git diff 3df873e <provenance.code_commit> -- harness data configs`
 
 ## 1. Research questions
 
@@ -147,12 +150,18 @@ scenarios were never run. Details: `docs/dev-pilot-report.md`.
   JSON Schema; `Name <email>` normalized. Confirmed by a dev re-run of M2/M4 (decision rule
   in the report, §6.2).
 
-Proposed decisions for the freeze (all four members confirm):
+- **Schema-fix outcome:** passed its pre-set rule (0 format failures in 90 episodes). The
+  re-run also showed that single-repeat dev cells are unstable (M4 G2 instruction-bearing
+  8/15 → 3/15), so **no dev-split difference is carried into the hypotheses as a
+  prediction**; §6 stands as written before the pilot.
 
-- [ ] Keep `fixit` as the contrast template (0/50 in v3).
-- [ ] Keep the M1 planner prompt unchanged; report the one clean-task refusal (§6.1 of the
+Decisions adopted at the freeze (each member confirms by approving the freeze pull
+request; an objection raised before the test run is logged in §10):
+
+- [x] Keep `fixit` as the contrast template (0/50 in v3).
+- [x] Keep the M1 planner prompt unchanged; report the one clean-task refusal (§6.1 of the
       report) instead of tuning for a single episode.
-- [ ] Test split: 2 repeats per attacked variant and 2 clean repeats (§8).
+- [x] Test split: 2 repeats per attacked variant and 2 clean repeats (§8).
 
 ## 10. Deviations log
 
