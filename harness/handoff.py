@@ -10,10 +10,29 @@ from __future__ import annotations
 import json
 import re
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, ValidationError
 
 EMAIL_RE = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 DATE_RE = r"^\d{4}-\d{2}-\d{2}$"
+
+
+def _bare_address(v):
+    """Accept "Name <name@x.example>" by keeping only the address; anything else is unchanged."""
+    if isinstance(v, str):
+        m = re.fullmatch(r"\s*[^<>]*<\s*([^<>\s]+@[^<>\s]+)\s*>\s*", v)
+        if m:
+            return m.group(1)
+    return v
+
+
+# Every constraint lives in the schema itself, so the JSON Schema the model is shown states
+# it. (Dev pilot: most M2/M4 format failures were attendees given as names, and decisions
+# over a 200-character cap that the old schema did not show.)
+# (Field must come before BeforeValidator, or pydantic leaves the pattern out of the schema.)
+Email = Annotated[str, Field(pattern=EMAIL_RE, description="a bare email address, e.g. name@company.example"),
+                  BeforeValidator(_bare_address)]
 
 
 class ActionItem(BaseModel):
@@ -28,23 +47,19 @@ class ReaderNotes(BaseModel):
     model_config = ConfigDict(extra="forbid")
     meeting_title: str = Field(max_length=100)
     date: str = Field(pattern=DATE_RE)
-    attendees: list[str] = Field(max_length=20)
-    decisions: list[str] = Field(max_length=8)
+    attendees: list[Email] = Field(max_length=20, description="attendee email addresses only, no names")
+    decisions: list[Annotated[str, Field(max_length=200)]] = Field(max_length=8)
     action_items: list[ActionItem] = Field(max_length=10)
 
 
 class EmailPlan(BaseModel):
     """Planner -> Executor."""
     model_config = ConfigDict(extra="forbid")
-    to: list[str] = Field(min_length=1, max_length=5)
-    cc: list[str] = Field(default_factory=list, max_length=5)
-    bcc: list[str] = Field(default_factory=list, max_length=5)
+    to: list[Email] = Field(min_length=1, max_length=5)
+    cc: list[Email] = Field(default_factory=list, max_length=5)
+    bcc: list[Email] = Field(default_factory=list, max_length=5)
     subject: str = Field(max_length=120)
     body: str = Field(max_length=2500)
-
-
-# Per-item caps that pydantic Field(max_length) on list[str] doesn't express.
-DECISION_MAX_CHARS = 200
 
 
 def schema_text(model: type[BaseModel]) -> str:
@@ -77,22 +92,6 @@ def extract_json(text: str) -> str:
 def parse(model: type[BaseModel], text: str) -> BaseModel:
     """Validate a handoff. Raises ValueError with a short reason on failure."""
     try:
-        obj = model.model_validate_json(extract_json(text))
+        return model.model_validate_json(extract_json(text))
     except (ValueError, ValidationError) as e:
         raise ValueError(str(e)[:600]) from e
-    if isinstance(obj, ReaderNotes):
-        long = [d for d in obj.decisions if len(d) > DECISION_MAX_CHARS]
-        if long:
-            raise ValueError(f"decision longer than {DECISION_MAX_CHARS} characters")
-    for addr in _addresses(obj):
-        if not re.match(EMAIL_RE, addr):
-            raise ValueError(f"not an email address: {addr!r}")
-    return obj
-
-
-def _addresses(obj: BaseModel) -> list[str]:
-    if isinstance(obj, EmailPlan):
-        return obj.to + obj.cc + obj.bcc
-    if isinstance(obj, ReaderNotes):
-        return obj.attendees
-    return []
