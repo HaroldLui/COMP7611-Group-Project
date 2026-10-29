@@ -53,6 +53,15 @@ def cfg_label(r: dict) -> str:
     return r["config"] + ("+GW" if r["gateway"] else "")
 
 
+MISSING = "n/a (rescore)"
+
+
+def missing_metrics(rows: list[dict]) -> list[str]:
+    """Metrics the current scorer produces that some stored episodes lack."""
+    from .scoring import SCORE_KEYS
+    return sorted({k for r in rows for k in SCORE_KEYS if k not in r["score"]})
+
+
 def table_by_config(rows: list[dict]) -> tuple[list[str], list[dict]]:
     groups: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -68,18 +77,31 @@ def table_by_config(rows: list[dict]) -> tuple[list[str], list[dict]]:
         def k(rs, f):
             return sum(bool(r["score"][f]) for r in rs)
 
+        def rate(rs, f):
+            # A metric that some episodes were never scored on (older folder) is unknown, not 0.
+            if any(f not in r["score"] for r in rs):
+                return MISSING
+            return fmt_rate(k(rs, f), len(rs))
+
         out.append({
             "config": label,
-            "utility_clean": fmt_rate(k(clean, "utility"), len(clean)),
-            "ASR_G1": fmt_rate(k(g1, "g1_success"), len(g1)),
-            "attempt_G1": fmt_rate(k(g1, "g1_attempt"), len(g1)),
-            "ASR_G2": fmt_rate(k(g2, "g2_success"), len(g2)),
-            "misdirect": fmt_rate(k(g, "misdirect"), len(g)),
-            "utility_attacked": fmt_rate(k(att, "utility"), len(att)),
-            "safe_utility_attacked": fmt_rate(k(att, "safe_utility"), len(att)),
+            "utility_clean": rate(clean, "utility"),
+            "ASR_G1": rate(g1, "g1_success"),
+            "attempt_G1": rate(g1, "g1_attempt"),
+            "ASR_G2": rate(g2, "g2_success"),
+            # `direct` G2 is a tampered line with no instruction (a transcription control);
+            # report it apart from the instruction-bearing templates.
+            "ASR_G2_instr": rate([r for r in g2 if r["template"] != "direct"], "g2_success"),
+            "ASR_G2_direct": rate([r for r in g2 if r["template"] == "direct"], "g2_success"),
+            "flagged_attacked": rate(att, "flagged"),
+            "flagged_clean": rate(clean, "flagged"),
+            "misdirect": rate(g, "misdirect"),
+            "notify_requester": rate(g, "notify_requester"),
+            "utility_attacked": rate(att, "utility"),
+            "safe_utility_attacked": rate(att, "safe_utility"),
             "format_fail": fmt_rate(sum(r["score"]["status"] == "format_failure" for r in g), len(g)),
             "errors": sum(r["score"]["status"] == "error" for r in g),
-            "g2_review": k(g2, "g2_needs_review"),
+            "g2_review": MISSING if any("g2_needs_review" not in r["score"] for r in g2) else k(g2, "g2_needs_review"),
             "tokens_per_ep": round(sum(r["score"]["input_tokens"] + r["score"]["output_tokens"] for r in g) / len(g)),
             "calls_per_ep": round(sum(r["score"]["n_model_calls"] for r in g) / len(g), 1),
         })
@@ -167,6 +189,11 @@ def main(argv=None) -> None:
     if "fake" in backends:
         lines += ["> **FAKE BACKEND — plumbing test only. These numbers are not experimental data.**", ""]
 
+    missing = missing_metrics(rows)
+    if missing:
+        lines += [f"> **Scored with older rules:** {', '.join(missing)} missing for some episodes "
+                  f"(shown as `{MISSING}`). Re-run with `--rescore`.", ""]
+
     cols, table = table_by_config(rows)
     if table:
         lines += ["## By configuration", "", "| " + " | ".join(cols) + " |",
@@ -178,8 +205,12 @@ def main(argv=None) -> None:
             w.writerows(table)
 
     labels = {cfg_label(r) for r in rows}
-    lines += ["", "## Primary comparisons (attack success; paired bootstrap over scenarios)", "",
-              "| comparison | goal | difference | 95% CI | scenarios |", "|---|---|---|---|---|"]
+    n_scen = len({r["scenario_id"] for r in rows})
+    lines += ["", "## Primary comparisons (attack success; paired bootstrap over scenarios)", ""]
+    if n_scen < 10:
+        lines += [f"> Only {n_scen} scenarios: a bootstrap over this few clusters gives coarse, "
+                  "unreliable intervals. Read differences as direction, not significance.", ""]
+    lines += ["| comparison | goal | difference | 95% CI | scenarios |", "|---|---|---|---|---|"]
     for gw in ("", "+GW"):
         for x, y in PRIMARY:
             xa, yb = x + gw, y + gw
