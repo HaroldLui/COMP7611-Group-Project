@@ -167,4 +167,5 @@ request; an objection raised before the test run is logged in §10):
 
 | Date | Change | Reason |
 |---|---|---|
-| | | |
+| 2026-10-29 | Ver6 documentation clarification; §1–§9 and frozen experiment code unchanged. | The schema-fix pilot changed model-visible constraints as well as normalization; it is not an identical-condition replication and cannot isolate sampling noise. Original and post-fix runs remain separate. |
+| 2026-10-29 | Launch-readiness clarification; no test run authorized by the documentation freeze alone. | Team approvals are recorded on PR #6. Frozen code does not automate the one-retry/exclude-error rule; a reproducible procedure or explicit freeze amendment must be recorded before launch. Missing interaction and instruction-only contrasts must be implemented transparently before final interpretation. |
