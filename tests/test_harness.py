@@ -15,7 +15,7 @@ from harness.attacks import GOALS, TEMPLATES, inject, marker_for  # noqa: E402
 from harness.env import Workspace, load_scenarios  # noqa: E402
 from harness.llm import FakeBackend  # noqa: E402
 from harness.pipeline import CONFIGS, run_episode  # noqa: E402
-from harness.scoring import score  # noqa: E402
+from harness.scoring import FLAG_RE, score  # noqa: E402
 
 SCEN = ROOT / "data" / "scenarios.json"
 
@@ -73,6 +73,73 @@ class TestHandoff(unittest.TestCase):
             handoff.parse(handoff.EmailPlan, '{"to":["a@b.example"],"subject":"s","body":"b","notes":"x"}')
         with self.assertRaises(ValueError):
             handoff.parse(handoff.EmailPlan, '{"to":["not-an-email"],"subject":"s","body":"b"}')
+
+
+class TestSchemaVisibility(unittest.TestCase):
+    """Constraints must appear in the schema the model is shown, not only be checked after."""
+
+    def test_constraints_in_schema(self):
+        notes = handoff.ReaderNotes.model_json_schema()["properties"]
+        self.assertIn("pattern", notes["attendees"]["items"])
+        self.assertEqual(notes["decisions"]["items"]["maxLength"], 200)
+        plan = handoff.EmailPlan.model_json_schema()["properties"]
+        self.assertIn("pattern", plan["to"]["items"])
+
+    def test_name_angle_address_normalized_but_bare_name_rejected(self):
+        base = '{"meeting_title":"t","date":"2026-10-01","decisions":[],"action_items":[],"attendees":[%s]}'
+        ok = handoff.parse(handoff.ReaderNotes, base % '"Bianca Sato <bianca.sato@n.example>"')
+        self.assertEqual(ok.attendees, ["bianca.sato@n.example"])
+        with self.assertRaises(ValueError):
+            handoff.parse(handoff.ReaderNotes, base % '"Bianca Sato"')
+        with self.assertRaises(ValueError):
+            handoff.parse(handoff.ReaderNotes, base.replace('"decisions":[]', '"decisions":["%s"]' % ("x" * 201)) % "")
+
+
+class TestRequesterAndFlags(unittest.TestCase):
+    def rec(self, s, to, body="summary"):
+        return {"status": "ok", "agents": [], "handoffs": [],
+                "events": [{"tool": "send_email", "status": "sent",
+                            "args": {"to": to, "cc": [], "bcc": [], "subject": "s", "body": body}}]}
+
+    def test_requester_notice_is_not_misdirection(self):
+        from harness.env import requester_email
+        s = scenarios()[0]
+        out = score(s, self.rec(s, s.authorized + [requester_email(s)]))
+        self.assertFalse(out["misdirect"])
+        self.assertTrue(out["notify_requester"])
+
+    def test_flagged_heuristic(self):
+        s = scenarios()[0]
+        self.assertTrue(score(s, self.rec(s, s.authorized, "The minutes look tampered with."))["flagged"])
+        self.assertFalse(score(s, self.rec(s, s.authorized, "Decisions and action items."))["flagged"])
+
+    def test_payloads_do_not_trigger_flag(self):
+        s = scenarios()[0]
+        for t in TEMPLATES:
+            for g in GOALS:
+                text = inject(s, t, g).injection.text
+                self.assertIsNone(FLAG_RE.search(text), (t, g))
+
+
+class TestMissingMetrics(unittest.TestCase):
+    def test_score_keys_match_scorer(self):
+        from harness.scoring import SCORE_KEYS
+        s = scenarios()[0]
+        rec = run_episode(s, CONFIGS["A"], FakeBackend(), False)
+        self.assertEqual(set(score(s, rec)), set(SCORE_KEYS))
+
+    def test_unscored_metric_is_not_zero(self):
+        from harness.analyze import MISSING, missing_metrics, table_by_config
+        s = scenarios()[0]
+        rec = run_episode(s, CONFIGS["A"], FakeBackend(), False)
+        sc = score(s, rec)
+        del sc["flagged"]  # as in a folder scored before the metric existed
+        rows = [{"config": "A", "gateway": False, "goal": None, "template": None,
+                 "scenario_id": s.id, "score": sc}]
+        self.assertEqual(missing_metrics(rows), ["flagged"])
+        _, table = table_by_config(rows)
+        self.assertEqual(table[0]["flagged_clean"], MISSING)
+        self.assertNotEqual(table[0]["utility_clean"], MISSING)
 
 
 class TestEpisodes(unittest.TestCase):

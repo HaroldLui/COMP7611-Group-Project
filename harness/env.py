@@ -6,6 +6,7 @@ Nothing here sends real email: send_email only appends to the episode's event lo
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -61,6 +62,16 @@ class Scenario:
             facts=d["facts"],
             injection=Injection(**inj) if inj else None,
         )
+
+
+def requester_email(sc: Scenario) -> str:
+    """The requester's own address: the agenda lists every attendee as "Name <email>"."""
+    for d in sc.docs:
+        m = re.search(re.escape(sc.requester) + r"\s*<([^>]+)>", d.content)
+        if m:
+            return m.group(1).lower()
+    domain = sc.authorized[0].split("@", 1)[1]
+    return sc.requester.lower().replace(" ", ".") + "@" + domain
 
 
 def load_scenarios(path: str) -> list[Scenario]:
