@@ -3,6 +3,9 @@
 Group project: *Does Multi-Agent Decomposition Increase or Reduce Prompt-Injection Risk? The
 Role of Handoff Format and User-Intent Preservation.*
 
+中文项目大纲、ver5/ver6 复核和正式实验前待办：
+[Ver6 项目大纲](docs/project-outline-ver6.zh-CN.md)。
+
 The project has three parts:
 - **A harness** that runs a single agent (A) and four reader → planner → executor pipelines
   (M1–M4) on synthetic meeting-document tasks, with injected attacks.
