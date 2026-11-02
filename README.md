@@ -26,6 +26,19 @@ cd ~/Desktop/mas-injection-study
 To view any episode as a readable trace (handy for slides):
 `python -m harness.show results/demo --config M1 --goal G1`
 
+## Presentation demo (replays real test-split episodes)
+
+```bash
+python demo/replay.py              # press Enter to step through; no API key or network needed
+python demo/replay.py --no-pause   # print everything at once
+```
+
+It shows one poisoned document (test-08, authority template, goal G1) going through A, M1,
+M2 and M1 with the gateway, using the recorded episodes: A leaks, M1 leaks with the injection
+passed through both handoffs, M2 drops it, and the gateway blocks M1's leak while the agent
+resends to the right person. `--live --profile deepseek` runs fresh episodes instead (needs
+`.env`; outcomes can differ from the recorded ones, so use it for rehearsal).
+
 ## Quick start (offline, no API key)
 
 ```bash
