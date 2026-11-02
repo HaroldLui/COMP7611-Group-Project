@@ -1,0 +1,30 @@
+{
+  "upstream_repository": "HaroldLui/COMP7611-Group-Project",
+  "upstream_main": "1b590624b79c6379a9cec20ff65d5df6d02298d9",
+  "local_frozen_checkout": "5627d1ee67348fa5b9ad773470f8d1eba9223861",
+  "remote_comparison": "https://github.com/HaroldLui/COMP7611-Group-Project/compare/5627d1ee67348fa5b9ad773470f8d1eba9223861...1b590624b79c6379a9cec20ff65d5df6d02298d9",
+  "remote_diff_only_adds_results": true,
+  "git_checkout_or_new_commit_claimed": false,
+  "staged_source_sha256": {
+    "harness/agents.py": "498169f8ed8edb0a0721828180f4f9c25a0ab1d40aae5e432c22b06d6a81d012",
+    "harness/analyze.py": "0e239ae54b224f7ecdb50ee543cdd11afc97ece3a182b6e72177e28f08505065",
+    "harness/attacks.py": "4750e49cb7ebd925b0f9864ab80a89092f97fa194360b5bd84bdb130d60d4f2b",
+    "harness/check.py": "f8f1b028072d64ae509fb989ec575be04e06fae9b0b55f30e8c8e5052b4b6f10",
+    "harness/config.py": "69e508697bc169a633f54c4122d323e36b03cccdc2eebb7166e823b9e62c3ade",
+    "harness/env.py": "27bc67089d7aef36ca6673dffdb1f5b76a200c7533cad3f490896fee48ddbb40",
+    "harness/handoff.py": "70d2a1497871f8e09aa9e00cb57d55ca8f37bc9b68d6c97c5912d6b47a9748e8",
+    "harness/llm.py": "6ba093a4d78a49cf1e3b5058c7c67485ef1dff5bb1fc40a272e2661f3664052d",
+    "harness/llm_openai.py": "6efbef645e0559f528a598c8c7be598c1b53a3798bd7c7fba648f6ba43cc9530",
+    "harness/pipeline.py": "26ddb3809596401a371c005fabe2f07aec46b04569878f5a53cf598b88cbb3b9",
+    "harness/prompts.py": "5bdc677bd0404a477f88525b4032e0b665325d12cb9a803e0be05f58ca4b96cb",
+    "harness/run.py": "c2e64d21de9552ad59c5472938f948de24aa2d697d6018400832885969e4f7e4",
+    "harness/scoring.py": "014e31ffb86a602132a338610350247e5658d5f76271a2cbf57ff6863b2153bd",
+    "harness/show.py": "acccf7a328892b793b42074ed088cb0aa0a71ede69a3286998bd3c1c2c36465e",
+    "harness/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data/make_scenarios.py": "b68f97ed13eb4f853ee6773ab67d5e84bb5fef10ed8ab1d2091872dd97c56627",
+    "data/scenarios.json": "2556ed4060c4e35602c6a12bf48b01765237e9c5a184a00c7ffd4d02f1599a4f",
+    "configs/models.toml": "6f446f537a358876607fec45c9aefe4c3fe9aa2ea72f314d1a50f8de9cf41c79",
+    "tests/test_harness.py": "5b91e61025f293a27e9df11e85311186f37f6a1562dca9f317c325aff36c0cb5",
+    "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

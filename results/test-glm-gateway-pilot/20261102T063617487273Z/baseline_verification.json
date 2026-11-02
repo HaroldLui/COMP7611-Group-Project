@@ -1,0 +1,25 @@
+{
+  "upstream_commit": "1b590624b79c6379a9cec20ff65d5df6d02298d9",
+  "all_frozen_core_files_match": true,
+  "line_endings_only_normalized": true,
+  "normalized_sha256": {
+    "harness/agents.py": "7bd181865e1f7296856fe7ddf5fc3400e1c7af3540087a1635badd0c87770355",
+    "harness/analyze.py": "d052a149d26406221250262da4816da85cc5a681053353cc17e5d48c40e6f225",
+    "harness/attacks.py": "aac47e20af2bc90424394bce12310d27e09cb59467451ccae53eab92b3669e9e",
+    "harness/check.py": "c9071ad84662cbf7595fd7c55378c8615221264685e2c74beced156b2a8f5a96",
+    "harness/config.py": "94067cef9f4dbe7d0b604ee2b46b0c8d02bd97a15dc66bfd4643ffb10551ddff",
+    "harness/env.py": "4b28686b56b73bec27fb2e1e12460570f03277e1352d23c8db809c01594b74e9",
+    "harness/handoff.py": "be7f2a281e485e9700c89a75945c9cfbe74f1f4e39a6e26205bdfb2fd01d375b",
+    "harness/llm.py": "0081e52aa82d345d31b8e73b3c79b93a547ea54d6bff46579eda3824ed1c5960",
+    "harness/llm_openai.py": "666b2e2f9719e57ba058ff827a8750aa8be4c4a1806a237020b9ea7e53329168",
+    "harness/pipeline.py": "9d22f5c554b9d5e838f112421bed8244f91039997f11bb5ad64bdd14be262af6",
+    "harness/prompts.py": "a16d9ef6b15e0e5c74b118feb82db493f4c41da9351948babc6bac303a6d177b",
+    "harness/run.py": "6b464ec459f8b43157ed91d2fa0c20ebbd8b20b4166c4839eca26119073150ec",
+    "harness/scoring.py": "a4da9bb99a8b9ef07f6b3193b66c9e46a5b47f85f50bd7c194a0148b60d61eeb",
+    "harness/show.py": "a5d2a20c78c73c600ba759281310ad1aecaaa2556abe864c8a93180c61b29673",
+    "harness/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data/make_scenarios.py": "5393b1701e934a59f319e431b661222a751a36454652e6cf13e73cfb874ac627",
+    "data/scenarios.json": "03d61477c719381af595aa39717a12a6e0bce1b88301b8dfa9fe684e9b921a1e",
+    "configs/models.toml": "ce578126a766360704d8b1cac83ce9be87f45aa2d52ebac12df002f858f0144b"
+  }
+}
