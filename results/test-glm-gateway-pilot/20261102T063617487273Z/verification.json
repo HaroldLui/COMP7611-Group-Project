@@ -1,0 +1,22 @@
+{
+  "saved": 45,
+  "planned": 45,
+  "all_keys_saved": true,
+  "missing_keys": [],
+  "dispatched_calls": 265,
+  "completed_calls": 265,
+  "pending_calls": [],
+  "unknown_usage_calls": [],
+  "reported_tokens": 247274,
+  "status_counts": {
+    "ok": 45
+  },
+  "source_and_envelope_hashes_verified": true,
+  "scores_recomputed": true,
+  "policy_events_verified": true,
+  "provider_and_record_usage_reconciled": true,
+  "opaque_body_excluded": true,
+  "nonempty_opaque_responses": 20,
+  "report_sha256": "364f5e7b2b71ab3978ab1456ca03b41f7eea4869509a1c4b6861e1a2d0333a64",
+  "technical_pass": true
+}
