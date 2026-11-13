@@ -1,0 +1,52 @@
+{
+  "profile": "deepseek",
+  "config": "/Users/harold/Documents/Codex/2026-10-20/an/work/additional-model-runs/glm-aliyun.toml",
+  "model": "glm-5.3",
+  "scenarios": "data/scenarios.json",
+  "split": "test",
+  "limit_scenarios": 0,
+  "configs": [
+    "A",
+    "M1",
+    "M2",
+    "M3",
+    "M4"
+  ],
+  "gateway": "off",
+  "templates": [
+    "direct",
+    "authority",
+    "fixit",
+    "role"
+  ],
+  "goals": [
+    "G1",
+    "G2"
+  ],
+  "positions": [
+    "body"
+  ],
+  "repeats": 2,
+  "clean_repeats": 2,
+  "out": "/Users/harold/Desktop/mas-injection-study/results/test-glm-5.3-aliyun",
+  "workers": 4,
+  "max_episodes": 0,
+  "dry_run": false,
+  "allow_mixed_versions": false,
+  "profile_settings": {
+    "profile": "deepseek",
+    "backend": "openai",
+    "base_url": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "model": "glm-5.3"
+  },
+  "backend_model": "glm-5.3",
+  "provenance": {
+    "code_commit": "26ceac62925311b6217603c3feac03d94d35e106",
+    "code_dirty": false,
+    "python": "3.14.6",
+    "openai_sdk": "3.40.0",
+    "anthropic_sdk": "2.3.0",
+    "pydantic": "2.14.1"
+  }
+}
