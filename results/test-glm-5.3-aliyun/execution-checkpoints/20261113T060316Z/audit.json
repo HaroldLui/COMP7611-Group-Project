@@ -1,0 +1,10 @@
+{
+  "time_utc": "20261113T060316Z",
+  "change": "workers 4 -> 8",
+  "scope": "Execution concurrency only; all experimental/model parameters unchanged",
+  "retained_episodes": 939,
+  "episode_sha256": "8c538311d1ec85164110eff28031803a1a2c529ff0de1644335779fd236ca6fb",
+  "checkpoint": "/Users/harold/Desktop/mas-injection-study/results/test-glm-5.3-aliyun/execution-checkpoints/20261113T060316Z",
+  "latency_comparison": "Separate concurrency phases when reporting latency.",
+  "inflight": "Unrecorded in-flight episodes may be retried; canonical completed keys are skipped."
+}
