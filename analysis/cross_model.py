@@ -246,6 +246,16 @@ def main():
         ax.set_axisbelow(True)
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
+    # Model logos under the x axis, model name below them (LobeHub icons, see paper/figures/logos)
+    from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+    logo_file = {"DeepSeek-v4.1-flash": "deepseek.png", "GLM-5.3": "zhipu.png", "Qwen3.8-flash": "qwen.png"}
+    for ax in axes:
+        ax.tick_params(axis="x", length=0, pad=26)
+        for i, name in enumerate(data):
+            img = plt.imread(ROOT / "paper" / "figures" / "logos" / logo_file[name])
+            ab = AnnotationBbox(OffsetImage(img, zoom=0.075), (i, 0), xybox=(0, -14), xycoords=("data", "axes fraction"),
+                                boxcoords="offset points", frameon=False, box_alignment=(0.5, 0.5))
+            ax.add_artist(ab)
     axes[0].set_ylabel("Attack success (%)")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, ncol=5, fontsize=8, frameon=False, loc="upper center", bbox_to_anchor=(0.5, 1.03))
