@@ -223,8 +223,11 @@ def main():
 
     # ---- figure: G1 success by configuration, one group per model
     import matplotlib
-    matplotlib.use("Agg")
+    matplotlib.use("pgf")
     import matplotlib.pyplot as plt
+    # Same typeface as the report (Palatino, set by pdflatex); needs a TeX installation.
+    plt.rcParams.update({"pgf.texsystem": "pdflatex", "pgf.rcfonts": False, "font.family": "serif",
+                         "pgf.preamble": r"\usepackage[T1]{fontenc}\usepackage{mathpazo}"})
     colors = {"A": "#334155", "M1": "#0F766E", "M2": "#5EAAA0", "M3": "#B4234A", "M4": "#E39AAE"}
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.4), sharey=True)
     for ax, (label, title) in zip(axes, [("G1 success", "Redirect (G1)"), ("G2 success (instruction)", "Manipulation, with instruction (G2)")]):
@@ -256,12 +259,14 @@ def main():
             ab = AnnotationBbox(OffsetImage(img, zoom=0.075), (i, 0), xybox=(0, -14), xycoords=("data", "axes fraction"),
                                 boxcoords="offset points", frameon=False, box_alignment=(0.5, 0.5))
             ax.add_artist(ab)
-    axes[0].set_ylabel("Attack success (%)")
+    axes[0].set_ylabel(r"Attack success (\%)")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, ncol=5, fontsize=8, frameon=False, loc="upper center", bbox_to_anchor=(0.5, 1.03))
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    for ext in ("pdf", "png"):
-        fig.savefig(ROOT / "paper" / "figures" / f"cross_model_attack.{ext}", dpi=200, bbox_inches="tight")
+    pdf = ROOT / "paper" / "figures" / "cross_model_attack.pdf"
+    fig.savefig(pdf, dpi=200, bbox_inches="tight")
+    import subprocess  # PNG preview rendered from the PDF so both use the same fonts
+    subprocess.run(["pdftoppm", "-r", "200", "-png", "-singlefile", str(pdf), str(pdf.with_suffix(""))], check=True)
     print("wrote", out / "summary.md")
 
 
