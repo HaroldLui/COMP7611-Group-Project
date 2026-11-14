@@ -1,0 +1,14 @@
+{
+  "model_requested": "qwen3.8-flash",
+  "state": "completed",
+  "planned_episodes": 2700,
+  "window": "22:00-08:00 Asia/Singapore",
+  "note": "Model compatibility check deferred to discounted window; no daytime API calls made.",
+  "child_pid": 38778,
+  "retained_episodes": 41,
+  "updated_at": "2026-11-13T16:59:16.131394+00:00",
+  "runner_pid": 38772,
+  "completed": 2700,
+  "errors": 0,
+  "analysis_exit_code": 0
+}
