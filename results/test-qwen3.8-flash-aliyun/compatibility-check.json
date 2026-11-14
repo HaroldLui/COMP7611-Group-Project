@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-11-13T22:00:49.245845+08:00",
+  "model_requested": "qwen3.8-flash",
+  "ok": true,
+  "stop": "end_turn",
+  "calls": 2,
+  "returned_models": [
+    "qwen3.8-flash"
+  ]
+}
