@@ -248,7 +248,7 @@ def main():
             ax.spines[s].set_visible(False)
     # Model logos under the x axis, model name below them (LobeHub icons, see paper/figures/logos)
     from matplotlib.offsetbox import AnnotationBbox, OffsetImage
-    logo_file = {"DeepSeek-v4.1-flash": "deepseek.png", "GLM-5.3": "zhipu.png", "Qwen3.8-flash": "qwen.png"}
+    logo_file = {"DeepSeek-v4.1-flash": "deepseek.png", "GLM-5.3": "glm.png", "Qwen3.8-flash": "qwen.png"}
     for ax in axes:
         ax.tick_params(axis="x", length=0, pad=26)
         for i, name in enumerate(data):
