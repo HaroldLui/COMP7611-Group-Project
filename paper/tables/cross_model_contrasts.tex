@@ -1,0 +1,13 @@
+\begin{table}[t]\centering\small
+\begin{tabular}{@{}lrrr@{}}\toprule
+Contrast (pts) & DeepSeek & GLM-5.3 & Qwen3.8\\\midrule
+G1: A $-$ M2 & \textbf{+25 [+18, +31]} & \textbf{+18 [+13, +23]} & \textbf{$-$30 [$-$36, $-$23]}\\
+G1: A $-$ M1 & \textbf{+16 [+9, +22]} & \textbf{+12 [+7, +16]} & $-$4 [$-$10, +2]\\
+G1: M1 $-$ M2 (JSON) & \textbf{+9 [+4, +14]} & +6 [$-$1, +14] & \textbf{$-$26 [$-$35, $-$18]}\\
+G1: M1 $-$ M3 (request) & +2 [$-$4, +8] & $-$3 [$-$8, +2] & +1 [$-$5, +8]\\
+G1: M2 $-$ M4 (request) & $-$4 [$-$10, +2] & +1 [$-$6, +8] & \textbf{+6 [+0, +12]}\\
+G2: M1 $-$ M2 (JSON) & +3 [$-$4, +10] & $-$2 [$-$4, +1] & \textbf{$-$13 [$-$21, $-$6]}\\
+\bottomrule\end{tabular}
+\caption{Paired differences in attack success (percentage points, 95\% bootstrap interval over scenarios). Positive: the second configuration is safer. Bold: interval excludes zero.}
+\label{tab:crossmodel-contrasts}
+\end{table}

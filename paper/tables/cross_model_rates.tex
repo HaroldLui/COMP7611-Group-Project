@@ -1,0 +1,23 @@
+\begin{table}[t]\centering\small
+\begin{tabular}{@{}llrrrrr@{}}\toprule
+Metric & Model & A & M1 & M2 & M3 & M4\\\midrule
+G1 success & DeepSeek & 47 & 31 & 22 & 29 & 26\\
+ & GLM-5.3 & 94 & 82 & 76 & 85 & 75\\
+ & Qwen3.8 & 10 & 14 & 40 & 12 & 33\\
+\midrule
+G2 success (instruction) & DeepSeek & 33 & 34 & 31 & 33 & 33\\
+ & GLM-5.3 & 69 & 67 & 69 & 67 & 67\\
+ & Qwen3.8 & 57 & 49 & 62 & 51 & 60\\
+\midrule
+G2 control (no instruction) & DeepSeek & 95 & 88 & 92 & 98 & 92\\
+ & GLM-5.3 & 88 & 98 & 95 & 100 & 97\\
+ & Qwen3.8 & 95 & 85 & 90 & 93 & 92\\
+\midrule
+Safe and done (attacked) & DeepSeek & 52 & 58 & 66 & 60 & 63\\
+ & GLM-5.3 & 16 & 21 & 24 & 20 & 25\\
+ & Qwen3.8 & 61 & 59 & 44 & 60 & 47\\
+\bottomrule
+\end{tabular}
+\caption{Attack success and task outcome (\%) for three models on the same 30 test scenarios (540 episodes per configuration and model, gateway off). G2 control is a tampered action line with no instruction. 95\% intervals are in \texttt{results/cross-model/summary.md}.}
+\label{tab:crossmodel}
+\end{table}

@@ -1,0 +1,25 @@
+model,contrast,diff,lo,hi,excludes_zero
+DeepSeek-v4.1-flash,"Single vs. free-text pipeline (A − M1), G1",0.1583,0.0875,0.225,True
+DeepSeek-v4.1-flash,"Single vs. JSON pipeline (A − M2), G1",0.25,0.1833,0.3125,True
+DeepSeek-v4.1-flash,"Free text vs. JSON (M1 − M2), G1",0.0917,0.0417,0.1417,True
+DeepSeek-v4.1-flash,"Free text vs. JSON, request visible (M3 − M4), G1",0.0333,-0.0292,0.0958,False
+DeepSeek-v4.1-flash,"Without vs. with request (M1 − M3), G1",0.0167,-0.0417,0.075,False
+DeepSeek-v4.1-flash,"Without vs. with request (M2 − M4), G1",-0.0417,-0.1042,0.0208,False
+DeepSeek-v4.1-flash,"Free text vs. JSON (M1 − M2), G2 instruction",0.0333,-0.0389,0.1,False
+DeepSeek-v4.1-flash,"Single vs. free-text pipeline (A − M1), G2 instruction",-0.0167,-0.0778,0.05,False
+GLM-5.3,"Single vs. free-text pipeline (A − M1), G1",0.1167,0.0708,0.1625,True
+GLM-5.3,"Single vs. JSON pipeline (A − M2), G1",0.1792,0.1292,0.2292,True
+GLM-5.3,"Free text vs. JSON (M1 − M2), G1",0.0625,-0.0125,0.1375,False
+GLM-5.3,"Free text vs. JSON, request visible (M3 − M4), G1",0.1,0.0333,0.1667,True
+GLM-5.3,"Without vs. with request (M1 − M3), G1",-0.0292,-0.0792,0.0208,False
+GLM-5.3,"Without vs. with request (M2 − M4), G1",0.0083,-0.0625,0.0792,False
+GLM-5.3,"Free text vs. JSON (M1 − M2), G2 instruction",-0.0167,-0.0444,0.0111,False
+GLM-5.3,"Single vs. free-text pipeline (A − M1), G2 instruction",0.0222,-0.0222,0.0667,False
+Qwen3.8-flash,"Single vs. free-text pipeline (A − M1), G1",-0.0375,-0.1042,0.025,False
+Qwen3.8-flash,"Single vs. JSON pipeline (A − M2), G1",-0.2958,-0.3625,-0.2292,True
+Qwen3.8-flash,"Free text vs. JSON (M1 − M2), G1",-0.2583,-0.3458,-0.175,True
+Qwen3.8-flash,"Free text vs. JSON, request visible (M3 − M4), G1",-0.2083,-0.2583,-0.1583,True
+Qwen3.8-flash,"Without vs. with request (M1 − M3), G1",0.0125,-0.05,0.075,False
+Qwen3.8-flash,"Without vs. with request (M2 − M4), G1",0.0625,0.0042,0.1208,True
+Qwen3.8-flash,"Free text vs. JSON (M1 − M2), G2 instruction",-0.1333,-0.2111,-0.0611,True
+Qwen3.8-flash,"Single vs. free-text pipeline (A − M1), G2 instruction",0.0833,0.0167,0.1556,True
