@@ -58,8 +58,8 @@ test the plumbing. **Its numbers are not results**, and `summary.md` says so.
 2. **Add your key:** `cp .env.example .env`, then fill in the key for your provider. `.env`
    is git-ignored. Never put keys in `configs/models.toml`.
 3. **Pick a profile:** open `configs/models.toml`, choose one (or copy one), and set `model`.
-   Ready-made profiles: `openai`, `deepseek`, `qwen`, `gemini`, `openrouter`, `local` (Ollama/vLLM),
-   `claude`. Any OpenAI-compatible endpoint works through `backend = "openai"` plus `base_url`.
+   Ready-made profiles: `openai`, `deepseek`, `qwen`, `gemini`, `openrouter`, `local` (Ollama/vLLM).
+   Any OpenAI-compatible endpoint works through `backend = "openai"` plus `base_url`.
 4. **Check it works** (2–3 tiny calls):
 
    ```bash
@@ -119,7 +119,7 @@ a pulled run without unzipping it.
 data/make_scenarios.py    template-based scenario generator (fictional people, .example domains)
 configs/models.toml       model profiles (provider, model, settings); keys go in .env
 harness/config.py         profile + .env loading, backend factory
-harness/llm.py            backend interface, Anthropic backend, offline fake backend
+harness/llm.py            backend interface, offline fake backend
 harness/llm_openai.py     OpenAI-compatible backend (OpenAI, DeepSeek, Qwen, Gemini, OpenRouter, Ollama, vLLM)
 harness/check.py          one-command connection + tool-calling check for a profile
 harness/show.py           print one episode as a readable trace

@@ -1,11 +1,11 @@
 """Model backends.
 
-A backend takes (system, messages, tools) and returns one Turn. Messages use the Anthropic
-Messages API shape: {"role": "user"|"assistant", "content": str | list[block]}, where blocks
+A backend takes (system, messages, tools) and returns one Turn. Messages use a neutral
+block shape: {"role": "user"|"assistant", "content": str | list[block]}, where blocks
 are text / tool_use / tool_result dicts. A backend for another provider converts to and from
 this shape inside `complete`.
 
-- AnthropicBackend: real model calls (requires `pip install anthropic` and credentials).
+- OpenAICompatBackend (harness/llm_openai.py): real model calls through any OpenAI-compatible API.
 - FakeBackend: deterministic rule-based stand-in for offline plumbing tests. Its numbers are
   NOT experimental data.
 """
@@ -37,58 +37,6 @@ class Backend(Protocol):
     def complete(self, system: str, messages: list[dict[str, Any]],
                  tools: list[dict[str, Any]]) -> Turn: ...
 
-
-class AnthropicBackend:
-    """Claude via the official SDK, manual tool loop (driven by harness.agents).
-
-    Deliberate choices for a controlled experiment:
-    - effort is set explicitly and logged (Opus 5.5 defaults to medium if omitted);
-    - no sampling parameters (temperature etc. are rejected on the current API), so
-      repeats give natural run-to-run variance;
-    - no server-side refusal `fallbacks`: a fallback would silently swap the model under
-      test. Refusals are logged as a stop_reason instead.
-    """
-
-    name = "anthropic"
-
-    def __init__(self, model: str = "claude-opus-5-5", effort: str = "medium",
-                 max_tokens: int = 16000):
-        import anthropic  # imported lazily so the fake backend works without the SDK
-
-        self.client = anthropic.Anthropic(max_retries=4)
-        self.model = model
-        self.effort = effort
-        self.max_tokens = max_tokens
-
-    def complete(self, system, messages, tools):
-        kwargs: dict[str, Any] = dict(
-            model=self.model,
-            max_tokens=self.max_tokens,
-            system=system,
-            messages=messages,
-            output_config={"effort": self.effort},
-        )
-        if tools:
-            kwargs["tools"] = tools
-        t0 = time.monotonic()
-        resp = self.client.messages.create(**kwargs)
-        latency = time.monotonic() - t0
-
-        blocks: list[dict[str, Any]] = []
-        for b in resp.content:
-            if b.type == "text":
-                blocks.append({"type": "text", "text": b.text})
-            elif b.type == "tool_use":
-                blocks.append({"type": "tool_use", "id": b.id, "name": b.name, "input": b.input})
-        # Thinking blocks stay in `raw` (they must be passed back unchanged) but aren't logged.
-        usage = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens}
-        return Turn(blocks=blocks, raw=resp.content, stop_reason=resp.stop_reason or "",
-                    model=resp.model, usage=usage, latency_s=latency)
-
-
-# --------------------------------------------------------------------------------------
-# Offline fake
-# --------------------------------------------------------------------------------------
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _URL = re.compile(r"https?://\S+")

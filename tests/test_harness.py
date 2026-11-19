@@ -211,7 +211,7 @@ class TestConfig(unittest.TestCase):
         import tomllib
         names = tomllib.loads(DEFAULT_CONFIG.read_text())["profiles"]
         for n in names:
-            self.assertIn(load_profile(n)["backend"], ("fake", "openai", "anthropic"))
+            self.assertIn(load_profile(n)["backend"], ("fake", "openai"))
 
     def test_placeholder_model_rejected(self):
         from harness.config import load_profile, make_backend

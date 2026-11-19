@@ -56,7 +56,6 @@ def provenance() -> dict:
         "code_dirty": bool(git("status", "--porcelain", "--", "harness", "data", "configs")),
         "python": platform.python_version(),
         "openai_sdk": version("openai"),
-        "anthropic_sdk": version("anthropic"),
         "pydantic": version("pydantic"),
     }
 
