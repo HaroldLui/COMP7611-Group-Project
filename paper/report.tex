@@ -128,7 +128,7 @@ Extra fields are rejected, and records that pass validation are re-serialised be
 The gateway refuses any send with a recipient outside the scenario's authorised list. It looks at recipients only, never at the email body. When it refuses a send, the model gets a tool error back and can fix the recipients and try again. This means one workflow can contain both a blocked attack and a successfully completed task. We tested the gateway in a separate run, so it is not a fully crossed third factor in the main $2\times2$ design.
 
 \subsection{Development and test runs}
-We developed the prompts and attacks on five scenarios and kept thirty different scenarios aside for testing. Our first pilot produced no successful attacks at all. After revising the attacks, we tried the new G2 wording on the single agent (A) before running the full development set, which may have made that wording especially effective against A on DeepSeek. The preregistration records the design freeze on 29 October 2026 and pins the frozen experiment code to commit \texttt{3df873e}.
+We developed the prompts and attacks on five scenarios and kept thirty different scenarios aside for testing. Our first pilot produced no successful attacks at all. After revising the attacks, we tried the new G2 wording on the single agent (A) before running the full development set, which may have made that wording especially effective against A on DeepSeek. The preregistration records the design freeze on 29 October 2026 and pins the frozen experiment code to commit \texttt{a76854a}.
 
 The original model was \texttt{deepseek-v4.1-flash}, called through an OpenAI-compatible Ark endpoint. The later exploratory runs used \texttt{glm-5.3} and \texttt{qwen3.8-flash} through an OpenAI-compatible Aliyun endpoint. These are the model identifiers we recorded; we did not independently audit how the providers routed the calls. We left sampling parameters at the provider defaults and capped responses at 4,096 tokens per call. Repeats capture the variability we observed, but we cannot assume a provider behaves identically from one day to the next.
 
@@ -290,7 +290,7 @@ The most useful next step would be to replay identical content in both formats, 
 On DeepSeek, splitting the workflow between agents reduced recipient redirection. On Qwen, the JSON pipelines were redirected more often than the single agent. The handoff logs show where the attacker's address was dropped and which surviving addresses ended up in a sent email, but they do not settle why the result reversed. The one guarantee that held everywhere came from outside the models: in the gateway run, the recipient allowlist ensured that no simulated email reached the attacker in any of the five configurations. Keeping the content of emails to the right people free of manipulation is a separate problem, and one that none of our designs solved.
 
 \paragraph{Reproducibility and ethics.}
-The four \texttt{results/test-*} batches are available in an \href{https://github.com/HaroldLui/COMP7611-Group-Project/tree/dbaa62949eef37b0d7e65e0cf823c31b132be54f/results}{archived repository snapshot} \citep{project}. Our offline analysis uses the stored workflow scores and marker-presence indicators taken from the transferred handoffs. Everyone and every organisation in the scenarios is fictional, attacker markers use \texttt{.example} domains, and every send was simulated.
+The four \texttt{results/test-*} batches are available in an \href{https://github.com/HaroldLui/COMP7611-Group-Project/tree/477fb6c2ac63e87c98a62bc7dde09bb8c5475357/results}{archived repository snapshot} \citep{project}. Our offline analysis uses the stored workflow scores and marker-presence indicators taken from the transferred handoffs. Everyone and every organisation in the scenarios is fictional, attacker markers use \texttt{.example} domains, and every send was simulated.
 
 % ---------------------------------------------------------------- References (APA 7th)
 % Alphabetical by first author; same first author ordered by subsequent authors.
@@ -314,7 +314,7 @@ Hines, K., Lopez, G., Hall, M., Zarfati, F., Zunger, Y., \& Kiciman, E. (2024). 
 Lee, D., \& Tiwari, M. (2024). \emph{Prompt infection: LLM-to-LLM prompt injection within multi-agent systems} (arXiv:2410.07283) [Preprint]. arXiv. \url{https://doi.org/10.48550/arXiv.2410.07283}
 
 \bibitem[Lui et~al.(2026)]{project}
-Lui, C. S., Meng, G., Xie, Z., \& Gao, F. (2026). \emph{COMP7611 group project: Code, preregistration and canonical experiment logs} (Snapshot dbaa629) [Computer software and data set]. GitHub. \url{https://github.com/HaroldLui/COMP7611-Group-Project}
+Lui, C. S., Meng, G., Xie, Z., \& Gao, F. (2026). \emph{COMP7611 group project: Code, preregistration and canonical experiment logs} (Snapshot 477fb6c) [Computer software and data set]. GitHub. \url{https://github.com/HaroldLui/COMP7611-Group-Project}
 
 \bibitem[Peters-Gill et~al.(2026)]{multicamel}
 Peters-Gill, J., Semler, A., Bartsch, H., Shumailov, I., \& Schroeder de Witt, C. (2026). \emph{Can CaMeLs talk? Securing multi-agent systems against indirect prompt injection attacks} (arXiv:2610.05640) [Preprint]. arXiv. \url{https://doi.org/10.48550/arXiv.2610.05640}
