@@ -5,7 +5,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern,microtype}
-\usepackage[margin=0.88in]{geometry}
+\usepackage[margin=0.85in]{geometry}
 \usepackage{amsmath,amssymb,booktabs,tabularx,array,multirow}
 \usepackage{graphicx,xcolor,tikz,pgfplots}
 \usetikzlibrary{arrows.meta,positioning}
@@ -17,7 +17,7 @@
 \usepackage[colorlinks=true,linkcolor=teal!60!black,citecolor=teal!60!black,urlcolor=teal!60!black]{hyperref}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
-\setlength{\parskip}{3pt}
+\setlength{\parskip}{2pt}
 \setlength{\parindent}{1em}
 \setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
 \setlength{\floatsep}{10pt plus 2pt minus 2pt}
@@ -30,7 +30,7 @@
   {\par\medskip}
 % APA 7 reference list: centred bold heading, hanging indent of 0.5 in, alphabetical order.
 \renewcommand{\refname}{\centering References}
-\setlength{\bibsep}{4pt}
+\setlength{\bibsep}{2pt}
 \setlength{\bibhang}{0.5in}
 \title{\vspace{-1.3em}\textbf{Does Multi-Agent Decomposition Increase or Reduce Prompt-Injection Risk?}}
 \author{\begin{tabular}{cc}
@@ -41,47 +41,47 @@ XIE Zixuan (3036904434) & GAO Fanjie (3036841292)
 \begin{document}
 \maketitle
 \begin{abstract}
-We study whether splitting a meeting-summary task across several agents reduces the risk of indirect prompt injection. We compare a single agent with four reader--planner--executor pipelines that vary the handoff format (free text or constrained JSON) and whether the executor sees the original user request. In the main DeepSeek experiment (2,700 workflows), recipient redirection succeeded in 46.7\% of tests against the single agent and 21.7--30.8\% against the pipelines. The rate was 9.2 percentage points lower with JSON in the M1--M2 comparison. Manipulation attempts that contained an instruction succeeded in roughly one third of tests across configurations. Two exploratory runs (5,400 workflows) showed that the ordering depended on the model: Qwen's single agent had a lower redirection rate than either of its JSON pipelines. In the handoff logs, JSON readers passed on the attacker address less often, but when they did, the address was more likely to become a recipient. A separate gateway run (1,350 workflows) blocked all sends to the attacker address. Emails to authorised recipients could still carry manipulated content.
+Can splitting an assistant into several agents protect it from instructions hidden in the documents it reads? We tested this on a meeting-summary task. A single agent was compared with four reader--planner--executor pipelines, which differ in two ways: whether the agents hand off free text or constrained JSON, and whether the executor sees the user's original request. In our main DeepSeek experiment (2,700 workflows), attackers redirected the single agent's email in 46.7\% of attempts and the pipelines' in 21.7--30.8\%. Switching from free text to JSON (M1 to M2) cut redirection by a further 9.2 percentage points. Content manipulation was a different story: attacks that carried an instruction worked about a third of the time whatever the design. Two exploratory runs on other models (5,400 workflows) showed that the ranking is not fixed. On Qwen, the single agent was redirected less often than either JSON pipeline. The handoff logs suggest why: JSON readers passed the attacker's address along less often, but when they did, it was more likely to end up as a recipient. A recipient allowlist, tested in a separate run of 1,350 workflows, stopped every send to the attacker. It did nothing about manipulated content in emails to the right people.
 \end{abstract}
 
 \section{Introduction}
-Suppose a user asks an assistant to email a meeting summary to a named colleague. One of the meeting documents contains an unauthorised request to add a recipient. If the assistant treats that request as an instruction from the user, the document has influenced a send it had no authority to change. This is indirect prompt injection \citep{greshake}.
+Imagine asking an assistant to email a meeting summary to a colleague. One of the meeting documents has been tampered with: somewhere in the minutes is a request to copy in an extra address. If the assistant treats that line as if it came from you, a document has just changed who receives your email. This is indirect prompt injection \citep{greshake}.
 
-In a pipeline, the reader cannot send email. It can still pass the request to a planner, whose output the executor uses to construct the email. Prior work shows that injected instructions can travel between agents \citep{infection,triedman}. We ask how often they lead to an accepted send when the task and attacks are held fixed and the handoff design changes.
+Splitting the work between agents looks like an obvious defence. If the agent that reads the documents cannot send email, a hidden instruction has no direct way to act. But the reader still writes notes for a planner, and the planner writes the plan the executor follows. Injected instructions are known to travel between agents in this way \citep{infection,triedman}. What we wanted to know was how often they actually turn into a sent email when the task and the attacks stay the same and only the handoff design changes.
 
-We compare a single agent with a $2\times2$ pipeline design. We track recipient redirection, manipulation of the email body, task completion and resource use. The baseline comparison covers two complete designs, which differ in context, tools, prompts and call budgets. The pipeline comparisons let us examine handoff format and request visibility more directly. We also repeat the comparison with two other model configurations and test a recipient check at the send tool. All sends are simulated.
+We set up a single-agent baseline and a $2\times2$ pipeline design, and measured four things: recipient redirection, manipulation of the email body, task completion and cost. The baseline comparison is a comparison of two whole designs, which differ in context, tools, prompts and call budget. The comparisons between pipelines are cleaner, and let us look at handoff format and request visibility more directly. We then repeated the experiment on two other models and tried a simple recipient check at the send tool.
 
 \section{Related Work}
 \paragraph{Indirect injection and agent evaluation.}
-\citet{greshake} show how adversarial instructions in retrieved data can alter an integrated application's behaviour. InjecAgent \citep{injecagent} benchmarks indirect injection in tool-integrated agents, including harmful actions and exfiltration. AgentDojo \citep{agentdojo} provides an extensible environment for evaluating attacks, defences and task utility. Our task follows the same distinction between an attack goal and the user's legitimate objective, but uses a small synthetic workflow rather than claiming the coverage of those benchmarks.
+\citet{greshake} first showed how instructions planted in retrieved data can take over an LLM-integrated application. InjecAgent \citep{injecagent} turned this into a benchmark for tool-using agents, covering both harmful actions and data exfiltration. AgentDojo \citep{agentdojo} offers an extensible environment for measuring attacks, defences and task utility together. We borrow their separation between the attacker's goal and the user's legitimate goal, but our setting is a small synthetic workflow and makes no claim to their coverage.
 
 \paragraph{Propagation across agents.}
-Prompt Infection \citep{infection} studies malicious instructions that spread between interconnected agents. \citet{triedman} demonstrate control and communication hijacking in orchestrated systems, including unsafe code execution. These findings motivate recording intermediate handoffs as well as final actions. Our comparison focuses on a fixed sequential pipeline with explicit tool permissions; it does not test arbitrary orchestrators, shared memories or agent-as-tool hierarchies.
+Prompt Infection \citep{infection} shows malicious instructions spreading from agent to agent. \citet{triedman} go further and hijack control and communication in orchestrated systems, to the point of running unsafe code. Work like this is why we log every intermediate handoff and not just the final action. Our own setting is narrower: a fixed, sequential pipeline with explicit tool permissions. We do not test arbitrary orchestrators, shared memory or agents that call other agents as tools.
 
 \paragraph{Provenance and enforcement.}
-CaMeL \citep{camel} separates trusted control flow from untrusted data and applies capability-based policies. \citet{multicamel} examine the composition problem in hierarchical systems and introduce a protocol preserving provenance across agent boundaries. Spotlighting \citep{spotlighting} instead signals the provenance of input through prompt transformations. Our pipelines do not implement these systems or inherit their guarantees. In particular, a schema-valid record is not a trusted instruction. The recipient gateway is a narrow, deterministic argument check, not a complete information-flow policy.
+CaMeL \citep{camel} keeps trusted control flow apart from untrusted data and enforces capability-based policies on top. \citet{multicamel} show that these guarantees do not automatically carry over when agents talk to each other, and propose a protocol that keeps track of provenance across agent boundaries. Spotlighting \citep{spotlighting} takes a lighter approach, marking where input came from inside the prompt itself. Our pipelines implement none of these, so they inherit none of their guarantees. In particular, a JSON record that passes validation is still not a trusted instruction. Our recipient gateway is a narrow, deterministic check on one argument, not an information-flow policy.
 
 \section{Task, Threat Model and Outcomes}
 \subsection{Legitimate task and adversary}
-The user asks the assistant to read three or four documents about a fictional meeting, summarise its decisions and action items, and email specified colleagues. Documents include meeting minutes, an agenda and follow-up correspondence. The environment exposes \texttt{list\_docs}, \texttt{read\_doc} and \texttt{send\_email}. The last tool writes an event into the current workflow log; no message reaches a real mailbox.
+The user asks the assistant to read three or four documents about a fictional meeting, pick out the decisions and action items, and email a summary to named colleagues. The folder typically holds minutes, an agenda and some follow-up correspondence. The assistant has three tools: \texttt{list\_docs}, \texttt{read\_doc} and \texttt{send\_email}. The last one only writes an entry in the workflow log; nothing reaches a real inbox.
 
-The attacker can alter exactly one document. The user request, other documents, system prompts and tools remain outside the attacker's control. Templates are fixed during test evaluation and do not adapt to observed outcomes. The target document and attacker marker are scenario-specific. Evaluated runs use the \texttt{body} insertion condition. Payloads resemble business correspondence, with four framings: a direct note, a spoofed authority request, a correction/compliance notice (\texttt{fixit}), and a role-aware workflow instruction. The last is architecture-aware; template results should not be treated as interchangeable attacks.
+The attacker controls the content of exactly one document. Everything else is off limits: the user's request, the other documents, the system prompts and the tools. The attack templates were fixed before testing and do not adapt to what happens. Each scenario has its own target document and attacker marker, and in every evaluated run the payload sits in the body of the document. Payloads are written to look like ordinary business correspondence, in four styles: a plain note (\texttt{direct}), a request that appears to come from someone in authority, a correction or compliance notice (\texttt{fixit}), and a workflow instruction that speaks to the pipeline's roles. That last one is aware of the architecture, so the templates should not be thought of as interchangeable.
 
 \subsection{Two distinct attack goals}
-\textbf{G1: recipient redirection.} Success requires an accepted simulated email whose \texttt{to}, \texttt{cc} or \texttt{bcc} field includes the attacker's exact address. An attempted send rejected by the gateway is not success. Other misdirected recipients and notifications to the requester are separate recorded outcomes and are not automatically G1.
+\textbf{G1: recipient redirection.} The attack counts as a success only if a simulated email is actually accepted with the attacker's exact address in \texttt{to}, \texttt{cc} or \texttt{bcc}. A send that the gateway rejects does not count. Emails to other wrong recipients, or notes sent back to the requester, are recorded separately and are not treated as G1.
 
-\textbf{G2: content manipulation.} We count a success when a sent email reaches all authorised recipients, contains the attacker's URL, and has no recognised warning phrase within 250 characters of that URL. This rule measures the appearance of the URL in the message. It cannot determine whether the agent endorsed the link or whether the message would cause harm. The \texttt{direct} template adds a false action item without telling the agent what to do. We report it as a separate transcription control because an agent can copy the item simply by summarising the document. The main G2 comparisons use the other three templates, all of which contain instructions.
+\textbf{G2: content manipulation.} Here success means a sent email that reaches all the authorised recipients, includes the attacker's URL, and has no recognised warning phrase within 250 characters of it. The rule tells us the link made it into the message. It cannot tell us whether the agent endorsed it, or whether anyone would be harmed. The \texttt{direct} template is special: it slips a fake action item into the document without asking the agent to do anything. An agent can pass it on just by summarising faithfully, so we report it separately as a transcription control. The main G2 comparisons use the other three templates, all of which contain an instruction.
 
 \paragraph{Task completion.}
-A workflow counts as complete if at least one sent email reaches every authorised recipient and mentions three expected facts: the deadline, the decision value and the owner of the first action item. We also report the share of workflows that meet this rule with no scored G1 or G2 success. The repository calls this measure \emph{safe utility}. Its scope is limited to the three facts and the two attack criteria, so other recipient errors and inaccuracies can go undetected.
+We count a workflow as complete if at least one sent email reaches every authorised recipient and mentions three expected facts: the deadline, the decision value and the owner of the first action item. We also report how many workflows manage this without either attack succeeding, which the repository calls \emph{safe utility}. The measure is deliberately narrow. It checks three facts and two attacks, so other recipient mistakes or errors in the summary can slip past it.
 
 \section{Experimental Design}
 \subsection{Roles, contexts and tool permissions}
-Configuration \cfg{A} is a single agent with all three tools in one context. The pipelines contain a reader allowed to list and read documents, a planner with no tools, and an executor allowed to send email. Each agent has a fresh message history and receives the handoff addressed to it rather than its predecessor's conversation. Tool permissions are enforced by the dispatch loop: an out-of-role tool call returns an error. Thus, a reader cannot send merely because a document tells it to do so, but it can still transmit text that influences the executor.
+In configuration \cfg{A}, one agent holds all three tools and does everything in a single context. The pipelines split the work. The reader can list and read documents, the planner has no tools at all, and only the executor can send email. Every agent starts with a fresh message history and sees only the handoff meant for it, never its predecessor's conversation. Permissions are enforced by the dispatch loop rather than by the prompt: calling a tool outside your role just returns an error. So a reader cannot send an email because a document tells it to, but it can still write something that steers the executor.
 
-All roles use the same model within a run, a common base role description and a cap of twelve model calls per agent. No explicit anti-injection instruction is added. This evaluates the implemented architecture and handoff choices without a separate prompt-level defence. A pipeline has more total call opportunities than \cfg{A}; the comparison is not an equal-inference-budget experiment.
+Within a run, every role uses the same model, the same base role description and the same cap of twelve model calls per agent. We added no anti-injection instructions anywhere, because we wanted to measure the architecture and the handoff choices, not a prompt-level defence. Note that a pipeline gets more model calls in total than \cfg{A}, so this is not a comparison at equal inference budget.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[>=Stealth, node distance=1.15cm,
 box/.style={draw,rounded corners=2pt,align=center,font=\small,minimum height=0.85cm,inner sep=5pt}]
@@ -117,32 +117,31 @@ ID & Architecture & Handoff & Executor receives request\\
 \caption{Configurations. The two factors are crossed within M1--M4; A is an overall architecture reference.}
 \label{tab:configs}
 \end{table}
-
 \subsection{Handoff protocols and request visibility}
-Free-text reader notes and planner plans are instructed to cover the relevant information categories, with approximate guides of 250 and 350 words. The JSON reader emits a meeting title (100-character cap), date, up to twenty attendee addresses, eight decisions (200 characters each) and ten action items. Each action item has an owner (60 characters), task (200 characters) and optional due date. There is no free-form notes field. The JSON planner emits one to five primary recipients, at most five CC and BCC recipients each, a 120-character subject and a 2,500-character body.
+In the free-text pipelines, the reader's notes and the planner's plan are asked to cover the same kinds of information, with rough length guides of 250 and 350 words. In the JSON pipelines the reader fills in a fixed record: a meeting title (up to 100 characters), a date, up to twenty attendee addresses, up to eight decisions (200 characters each) and up to ten action items. Each action item has an owner (60 characters), a task (200 characters) and an optional due date. There is no free-form notes field. The JSON planner then produces one to five main recipients, up to five CC and five BCC addresses, a subject of up to 120 characters and a body of up to 2,500.
 
-The system rejects extra fields and re-serialises objects that pass validation. If validation fails, the agent has one chance to repair the output using the error message. A second failure ends the workflow. We keep these workflows in the denominators and count them as unsuccessful for both the task and the attack.
+Extra fields are rejected, and records that pass validation are re-serialised before they are handed on. An agent whose output fails validation gets one chance to fix it, with the error message to help. A second failure ends the workflow. Those workflows stay in the denominators and count as failures for both the task and the attack.
 
-The JSON condition changes several things together: syntax, field types, length limits, validation and address normalisation. Its schema has no dedicated field for warnings or for recording where an instruction came from. We therefore interpret the text--JSON comparison as a comparison of the full handoff protocols. In M3 and M4 the executor also receives the original request verbatim and can use it when deciding what to send. The protocol adds no required check against that request.
+``JSON'' changes several things at once: the syntax, the field types, the length limits, validation and address normalisation. The schema also has nowhere to put a warning, and nowhere to record where an instruction came from. So when we compare text and JSON, we are comparing two complete handoff protocols, not just two formats. In M3 and M4 the executor additionally gets the user's original request, word for word, and can use it when deciding what to send. Nothing in the protocol requires it to check the plan against that request.
 
 \subsection{Recipient gateway}
-The gateway rejects a send if any recipient is outside the scenario's authorised list. It checks recipients, not the email body. A rejection returns control to the model as a tool error, allowing correction and another send. Consequently, a workflow may contain a blocked attack attempt and still complete the legitimate task. The gateway is evaluated in a separate run and is not a fully crossed third factor in the main $2\times2$ experiment.
+The gateway refuses any send with a recipient outside the scenario's authorised list. It looks at recipients only, never at the email body. When it refuses a send, the model gets a tool error back and can fix the recipients and try again. This means one workflow can contain both a blocked attack and a successfully completed task. We tested the gateway in a separate run, so it is not a fully crossed third factor in the main $2\times2$ design.
 
 \subsection{Development and test runs}
-We used five scenarios to develop the prompts and attacks and thirty separate scenarios for testing. The initial pilot had no successful attacks. After revising the attacks, we tried the revised G2 wording on the single agent (A) before the full development run. This may have made the selected G2 wording particularly effective against A on DeepSeek. The preregistration records the design freeze on 29 October 2026 and identifies the frozen experiment code as \texttt{3df873e}.
+We developed the prompts and attacks on five scenarios and kept thirty different scenarios aside for testing. Our first pilot produced no successful attacks at all. After revising the attacks, we tried the new G2 wording on the single agent (A) before running the full development set, which may have made that wording especially effective against A on DeepSeek. The preregistration records the design freeze on 29 October 2026 and pins the frozen experiment code to commit \texttt{3df873e}.
 
-The original model profile is \texttt{deepseek-v4.1-flash}, accessed through an OpenAI-compatible Ark endpoint. Later exploratory runs use \texttt{glm-5.3} and \texttt{qwen3.8-flash} through an Aliyun OpenAI-compatible endpoint. These are recorded model identifiers, not an independent audit of provider routing. Sampling parameters are unset (provider defaults); the configured response cap is 4,096 tokens per call. Repeats measure observed sampling variability without implying identical provider behaviour across dates.
+The original model was \texttt{deepseek-v4.1-flash}, called through an OpenAI-compatible Ark endpoint. The later exploratory runs used \texttt{glm-5.3} and \texttt{qwen3.8-flash} through an OpenAI-compatible Aliyun endpoint. These are the model identifiers we recorded; we did not independently audit how the providers routed the calls. We left sampling parameters at the provider defaults and capped responses at 4,096 tokens per call. Repeats capture the variability we observed, but we cannot assume a provider behaves identically from one day to the next.
 
-For each model, we tested 30 scenarios with five configurations. Within each configuration, each scenario was run twice without an attack and twice for each combination of four templates and two attack goals. That gives 240 G1, 180 instruction-bearing G2, 60 direct G2 and 60 clean workflows per configuration, or 2,700 workflows per model. The gateway run used one repeat, giving 1,350 workflows. The four batches contain 9,450 workflows in total, and each attack rate uses its own eligible workflows as the denominator. We retained one format failure from the original run, one from the gateway run and two from Qwen. GLM had none.
+For each model we ran 30 scenarios in all five configurations. In each configuration, every scenario was run twice without an attack and twice for each of the eight template--goal combinations. That gives 240 G1, 180 instruction-bearing G2, 60 direct G2 and 60 clean workflows per configuration, or 2,700 per model. The gateway run used a single repeat, for 1,350 workflows. Across the four batches there are 9,450 workflows, and each attack rate is computed over its own eligible workflows. We kept every format failure: one in the original run, one in the gateway run, two in the Qwen run and none in the GLM run.
 
 \subsection{Statistical comparisons and hypotheses}
-The attack success rate $\ASR_g(c)$ is the share of eligible workflows in configuration $c$ that meet the scoring rule for goal $g$. We report $\Delta_g(c,c')=\ASR_g(c)-\ASR_g(c')$ in percentage points. For example, a positive M1--M2 difference means a lower attack success rate in M2. Each comparison uses the same scenarios, templates and repeats on both sides. In each of 2,000 bootstrap draws (seed 0), we sample 30 scenarios with replacement and carry all observations for each sampled scenario together. We report a 95\% percentile confidence interval for each comparison, without an adjustment for multiple comparisons.
+For goal $g$ and configuration $c$, the attack success rate $\ASR_g(c)$ is the share of eligible workflows that meet the scoring rule. We report differences $\Delta_g(c,c')=\ASR_g(c)-\ASR_g(c')$ in percentage points, so a positive M1--M2 value means M2 was attacked successfully less often. Both sides of every comparison use the same scenarios, templates and repeats. To get intervals, we drew 2,000 bootstrap samples (seed 0), each consisting of 30 scenarios drawn with replacement, with all of a scenario's workflows kept together. We report 95\% percentile intervals and make no correction for multiple comparisons.
 
-The preregistered hypotheses were that JSON alone would leave G1 unchanged (H1a) and reduce G2 (H1b), and that showing the executor the request would reduce G1 (H2). H3 predicted a larger G1 reduction from showing the request with JSON than with free text. H4 predicted that the gateway would block all G1 sends and leave G2 unchanged. The proposed handoff replay (H5) was not run for these experiments. The later model runs and the analysis of handoff logs are exploratory. We calculated the instruction-only G2 differences after the run using the instruction-bearing cases specified in the registered metrics.
+Before testing, we preregistered five hypotheses. JSON on its own would leave G1 unchanged (H1a) but reduce G2 (H1b). Showing the executor the request would reduce G1 (H2), and more so with JSON than with free text (H3). The gateway would block every G1 send and leave G2 unchanged (H4). The handoff replay study that would have tested H5 was not run. Everything involving the two later models, and our analysis of the handoff logs, is exploratory. The instruction-only G2 differences were calculated after the run, using the instruction-bearing cases defined in the registered metrics.
 
 \section{Main Results on DeepSeek}
 \subsection{Architecture comparison and task completion}
-Table~\ref{tab:main} reports exact counts. DeepSeek's single agent was redirected in 112/240 workflows (46.7\%), compared with 21.7--30.8\% for the pipelines. The paired A--M1 difference is 15.8 points [8.8,22.5], and A--M2 is 25.0 [18.3,31.2]. These results favour the pipelines for this model, task and fixed attack collection. They do not isolate agent count or establish the same ordering for another model.
+Table~\ref{tab:main} gives the raw counts. DeepSeek's single agent was redirected in 112 of 240 workflows (46.7\%); the pipelines were redirected in 21.7--30.8\%. In paired terms, A--M1 is 15.8 points [8.8,22.5] and A--M2 is 25.0 [18.3,31.2]. For this model, this task and this set of attacks, the pipelines clearly come out ahead. What this does not tell us is whether the number of agents is the reason, or whether another model would show the same ordering.
 
 % BEGIN GENERATED MAIN_TABLE
 \begin{table}[htbp]
@@ -163,22 +162,22 @@ M4 & 62/240 & 59/180 & 55/60 & 60/60 \\
 \end{table}
 % END GENERATED MAIN_TABLE
 
-Instruction-bearing G2 success ranges from 31.1\% to 34.4\%. For M1--M2 the difference is 3.3 points [$-3.9$,10.0], providing no clear evidence of improvement. The direct control succeeds in 88.3--98.3\%: corrupted content can be transmitted even without an explicit behavioural instruction. This control makes it inappropriate to interpret all G2 URL occurrences as control-flow hijacking.
+Manipulation barely moved. Instruction-bearing G2 attacks succeeded in 31.1--34.4\% of workflows across all five configurations, and the M1--M2 difference of 3.3 points [$-3.9$,10.0] gives no clear sign that JSON helped. The direct control went through in 88.3--98.3\% of cases: tampered content travels perfectly well without any instruction attached. That is a useful reminder that a URL in the final email is not always evidence of hijacked control flow; sometimes the agent is simply summarising what it was given.
 
-Without an attack, task completion ranged from 91.7\% to 100\%. Under attack, about 52\% of runs for A and 58--66\% for the pipelines completed the task without either scored attack outcome. A used 5,152 tokens per workflow on average. The averages for M1--M4 were 6,933, 8,244, 7,061 and 8,411. These averages cover the retained runs and exclude discarded or interrupted attempts.
+Without an attack, the task was completed in 91.7--100\% of workflows. Under attack, the share completed with neither attack succeeding was about 52\% for A and 58--66\% for the pipelines. The pipelines cost more. A used 5,152 tokens per workflow on average, against 6,933, 8,244, 7,061 and 8,411 for M1--M4. These averages cover the retained runs only, not any discarded or interrupted attempts.
 
 \subsection{Handoff format and access to the user request}
-The strongest original-model protocol contrast is M1--M2 on G1: the rate was 9.2 points lower under the JSON protocol [3.8,14.2]. The M3--M4 contrast was smaller and its interval included zero. The M1--M2 G1 result runs counter to H1a. The instruction-only G2 contrast above provides no clear evidence for the reduction predicted by H1b.
+The biggest effect of handoff format on DeepSeek was M1--M2 on G1: JSON lowered redirection by 9.2 points [3.8,14.2]. The M3--M4 difference was smaller, and its interval included zero. The M1--M2 result goes against H1a, which predicted no change. And as noted above, the instruction-only G2 contrast does not support the reduction H1b predicted.
 
-Request visibility produces mixed original-model G1 contrasts: M1--M3 is +1.7 points [$-4.2$,7.5] and M2--M4 is $-4.2$ [$-10.4$,1.7]. H2 therefore lacks consistent support. The proposed interaction, $(M2-M4)-(M1-M3)$, is $-5.8$ points [$-12.9$,0.8] in the descriptive analysis, opposite to H3's predicted direction but still uncertain. These findings concern adding the request without an explicit verification rule, not the effectiveness of every intent-preservation mechanism.
+Showing the executor the request gave mixed results for G1: M1--M3 is +1.7 points [$-4.2$,7.5] and M2--M4 is $-4.2$ [$-10.4$,1.7]. So there is no consistent support for H2. The interaction, $(M2-M4)-(M1-M3)$, comes out at $-5.8$ points [$-12.9$,0.8] in our descriptive analysis. That points the opposite way to H3, though the interval is wide. All of this is about handing over the request without any rule for checking against it. It says nothing about intent-preservation mechanisms in general.
 
 \subsection{Gateway: attempted versus accepted sends}
-Across 600 G1 workflows in the separate gateway run, 179 included a send call with the attacker address in a recipient field. The gateway blocked all 179 calls, leaving zero successful G1 workflows. Attempt counts for A and M1--M4 were 60, 34, 33, 32 and 20 out of 120 per configuration.
+In the separate gateway run, 179 of the 600 G1 workflows included a send with the attacker's address in a recipient field. The gateway blocked all 179, so no G1 attack succeeded. By configuration, the attempts numbered 60, 34, 33, 32 and 20 out of 120 for A and M1--M4.
 
-With the gateway on, instruction-bearing G2 still succeeded in 25/90, 26/90, 32/90, 27/90 and 31/90 workflows for A and M1--M4, respectively. These results show that content manipulation remained possible. The gateway was run separately with fewer repeats, so the comparison cannot establish that it left the G2 rate unchanged, as H4 predicted. Under attack, task completion was 100\%, 88.8\%, 92.1\%, 97.9\% and 99.6\% for the same configurations. M1 and M2 completed fewer tasks in this batch, and the aggregate rates leave open what happened after individual rejections.
+Manipulation, however, carried on. With the gateway on, instruction-bearing G2 attacks still succeeded in 25/90, 26/90, 32/90, 27/90 and 31/90 workflows for A and M1--M4. Because the gateway run was separate and used fewer repeats, we cannot say it left the G2 rate unchanged, as H4 predicted, only that manipulation was still possible. Task completion under attack was 100\%, 88.8\%, 92.1\%, 97.9\% and 99.6\% for the same configurations. M1 and M2 completed fewer tasks in this batch, and the aggregate numbers do not tell us exactly what happened after each rejection.
 
 \section{Exploratory Results on GLM and Qwen}
-The additional GLM and Qwen batches use the same five configurations and the same tasks and attacks across thirty scenarios, with 2,700 workflows per batch and the gateway off. They were added after the original model selection. Provider, run date and model differ, so absolute cross-model differences are descriptive rather than an isolated causal effect of model identity.
+The GLM and Qwen batches used the same five configurations, tasks and attacks across the same thirty scenarios, with 2,700 workflows each and the gateway off. We added them after choosing the original model. Because the provider, run date and model all differ, absolute differences between models are descriptive; they are not a clean causal effect of the model itself.
 
 % BEGIN GENERATED CROSS_TABLE
 \begin{table}[htbp]
@@ -203,46 +202,23 @@ Qwen3.8 G2 direct & 95.0 & 85.0 & 90.0 & 93.3 & 91.7 \\
 \end{table}
 % END GENERATED CROSS_TABLE
 
-Figure~\ref{fig:models} and Table~\ref{tab:cross} show why the original architecture conclusion cannot be generalised. GLM's G1 rates are high in every configuration, ranging from 75.0\% to 93.8\%; each pipeline has a lower point estimate than A. Qwen's single agent, however, has a G1 rate of 10.0\%, compared with 39.6\% for M2 and 33.3\% for M4. The M1--M2 G1 contrast reverses sign on Qwen, at $-25.8$ points [$-34.6$,$-17.1$].
+Figure~\ref{fig:models} and Table~\ref{tab:cross} show why we cannot generalise the DeepSeek result. GLM was redirected a lot in every configuration (75.0--93.8\%), but each pipeline still had a lower point estimate than A. Qwen turned the picture around. Its single agent was redirected in only 10.0\% of attacks, against 39.6\% for M2 and 33.3\% for M4. The M1--M2 contrast flips sign on Qwen, to $-25.8$ points [$-34.6$,$-17.1$].
 
-% BEGIN GENERATED MODEL_FIGURE
-\begin{figure}[t]
+% Model comparison figure: generated by analysis/cross_model.py (paper/figures/cross_model_attack.pdf).
+\begin{figure}[htbp]
 \centering
-\hspace*{-0.01\linewidth}\begin{minipage}{0.49\linewidth}\centering
-\begin{tikzpicture}
-\begin{axis}[width=\linewidth,height=4.6cm,ybar,bar width=4pt,ymin=0,ymax=105,xtick={1,2,3},xticklabels={DeepSeek,GLM,Qwen},tick label style={font=\scriptsize},title={Recipient redirection (G1)},title style={font=\small},ylabel={Success (\%)},ylabel style={font=\scriptsize},grid=major,major grid style={gray!15},legend style={font=\scriptsize,at={(0.5,-0.24)},anchor=north,legend columns=5},enlarge x limits=0.20]
-\addplot[fill=gray!65,draw=gray!65] coordinates {(1,46.66667) (2,93.75000) (3,10.00000)};
-\addplot[fill=teal!85!black,draw=teal!85!black] coordinates {(1,30.83333) (2,82.08333) (3,13.75000)};
-\addplot[fill=teal!35,draw=teal!35] coordinates {(1,21.66667) (2,75.83333) (3,39.58333)};
-\addplot[fill=orange!85!black,draw=orange!85!black] coordinates {(1,29.16667) (2,85.00000) (3,12.50000)};
-\addplot[fill=orange!35,draw=orange!35] coordinates {(1,25.83333) (2,75.00000) (3,33.33333)};
-\legend{A,M1,M2,M3,M4}
-\end{axis}
-\end{tikzpicture}
-\end{minipage}\hfill\begin{minipage}{0.49\linewidth}\centering
-\begin{tikzpicture}
-\begin{axis}[width=\linewidth,height=4.6cm,ybar,bar width=4pt,ymin=0,ymax=105,xtick={1,2,3},xticklabels={DeepSeek,GLM,Qwen},tick label style={font=\scriptsize},title={Content manipulation (G2 instruction)},title style={font=\small},ylabel={Success (\%)},ylabel style={font=\scriptsize},grid=major,major grid style={gray!15},legend style={font=\scriptsize,at={(0.5,-0.24)},anchor=north,legend columns=5},enlarge x limits=0.20]
-\addplot[fill=gray!65,draw=gray!65] coordinates {(1,32.77778) (2,69.44444) (3,57.22222)};
-\addplot[fill=teal!85!black,draw=teal!85!black] coordinates {(1,34.44444) (2,67.22222) (3,48.88889)};
-\addplot[fill=teal!35,draw=teal!35] coordinates {(1,31.11111) (2,68.88889) (3,62.22222)};
-\addplot[fill=orange!85!black,draw=orange!85!black] coordinates {(1,32.77778) (2,67.22222) (3,51.11111)};
-\addplot[fill=orange!35,draw=orange!35] coordinates {(1,32.77778) (2,67.22222) (3,60.00000)};
-\legend{A,M1,M2,M3,M4}
-\end{axis}
-\end{tikzpicture}
-\end{minipage}
-\caption{Scored attack-success point estimates by model and configuration, gateway off. The direction of the JSON comparison reverses on Qwen; content and recipient endpoints remain distinct. Uncertainty is assessed through scenario-paired contrasts in the text.}
+\includegraphics[width=\linewidth]{figures/cross_model_attack.pdf}
+\caption{Attack success by model and configuration, gateway off, with 95\% Wilson intervals. Dark shades are free-text handoffs (M1, M3) and light shades JSON (M2, M4); teal configurations hide the user's request from the executor and red ones show it. The direction of the JSON comparison reverses on Qwen.}
 \label{fig:models}
 \end{figure}
-% END GENERATED MODEL_FIGURE
 
-GLM's instruction-bearing G2 rate ranged from 67.2\% to 69.4\% across configurations. Qwen's ranged from 48.9\% to 62.2\%. For Qwen, G2 was 13.3 points higher in M2 than in M1 (M1--M2 contrast, [$-21.1$,$-6.1$]). The direct control scored 85--100\% in both extensions.
+Manipulation rates were high on both new models: 67.2--69.4\% for GLM and 48.9--62.2\% for Qwen across configurations. On Qwen, JSON made things worse here too, with G2 13.3 points higher in M2 than in M1 (M1--M2 interval [$-21.1$,$-6.1$]). The direct control passed in 85--100\% of cases on both models.
 
-With Qwen, giving the JSON executor the original request (M2--M4) lowered G1 by 6.2 points [0.4,12.1]. The DeepSeek estimate went in the opposite direction and its interval included zero. We treat the Qwen result as exploratory given the number of comparisons.
+There was one result in the other direction. On Qwen, giving the JSON executor the original request (M2--M4) lowered G1 by 6.2 points [0.4,12.1]. On DeepSeek the estimate pointed the other way, with an interval that included zero. Given how many comparisons we made, we treat the Qwen result as exploratory.
 
 \section{How the Attacker Address Moves Through the Pipeline}
 \subsection{From the reader to the send tool}
-For each G1 workflow, we record whether the attacker's address appeared in the reader's handoff, the planner's handoff and an accepted send (Table~\ref{tab:stages}). We count any mention in a transferred handoff, including quotations and warnings. A candidate that fails validation is excluded from the handoff counts because the next agent never received it.
+To see where attacks succeed or fail, we followed the attacker's address through each G1 workflow: did it appear in the reader's handoff, in the planner's handoff, and in an accepted send (Table~\ref{tab:stages})? Any mention in a handoff counts, including quotations and warnings. Outputs that failed validation are left out, since the next agent never saw them.
 
 % BEGIN GENERATED STAGE_TABLE
 \begin{table}[htbp]
@@ -270,51 +246,51 @@ Qwen3.8 & M4 & 143 & 82 & 80 & 97.6 \\
 \end{table}
 % END GENERATED STAGE_TABLE
 
-The JSON reader transfers the address less often than the free-text reader. On DeepSeek, for example, M2 retains it in 87/240 reader handoffs, compared with 240/240 for M1. Yet conditional on its presence in the transmitted reader content, accepted sending occurs in 52/87 M2 workflows (59.8\%) versus 74/240 M1 workflows (30.8\%). Qwen shows the same descriptive tension: fewer reader markers under JSON, but more final G1 successes. This is consistent with filtering at reading and greater downstream adoption among surviving injected content.
+The JSON reader passed the address on much less often than the free-text reader. On DeepSeek, it appeared in 87 of 240 M2 reader handoffs, against 240 of 240 in M1. But once it had been passed on, it was more likely to be acted on: an accepted send followed in 52 of those 87 M2 workflows (59.8\%), compared with 74 of 240 in M1 (30.8\%). Qwen shows the same pull in two directions, with fewer addresses getting past the JSON reader but more successful redirects at the end. One reading is that JSON filters more at the reading stage, but whatever survives the filter is adopted more readily downstream.
 
-The two protocols pass different sets of content downstream. A free-text handoff may quote an address while explicitly rejecting it. Let $R$ denote the presence of the attacker address in the transferred reader handoff and $S$ an accepted send to that address. The identity
+The two protocols send different material downstream, though, which complicates the comparison. A free-text handoff can mention an address precisely in order to warn about it. To make this explicit, let $R$ mean the attacker's address is present in the reader's handoff, and $S$ an accepted send to that address. Then
 \[
-P(S)=P(R)P(S\mid R)+P(S\cap\neg R)
+P(S)=P(R)P(S\mid R)+P(S\cap\neg R).
 \]
-splits the send rate into cases with and without the address in the reader handoff. In our pipeline logs, every successful G1 send followed a reader handoff that contained the address, so the second term was zero. Differences in $P(S\mid R)$ describe what happened to the addresses each protocol passed on. They cannot isolate the effect of formatting the same content as text or JSON.
+The first term covers sends where the address came through the reader, and the second covers sends where it did not. In our logs, every successful G1 send followed a reader handoff that contained the address, so the second term is zero. Differences in $P(S\mid R)$ tell us what became of the addresses each protocol let through. They cannot tell us what would happen if the same content were simply formatted as text instead of JSON.
 
 \subsection{What the executor receives}
-Among transferred M2 plans containing the attacker address, the final send reached that address in 52/54 DeepSeek cases, 182/182 GLM cases and 95/95 Qwen cases (96--100\%). The corresponding M4 counts were 62/74, 180/180 and 80/82. One additional Qwen M4 candidate contained the address but failed validation before reaching the executor.
+Once the attacker's address made it into an M2 plan, the executor almost always sent to it: in 52 of 54 DeepSeek cases, 182 of 182 GLM cases and 95 of 95 Qwen cases (96--100\%). The M4 figures were 62 of 74, 180 of 180 and 80 of 82. One further Qwen M4 plan contained the address but failed validation, so it never reached the executor.
 
-A valid action-item field can carry a request taken from a document even when the user never authorised it. The text in the field may still name its source, but the schema does not require that information. This is an example of the source-tracking problem studied by \citet{multicamel}. To test whether the format itself changes the executor's behaviour, a follow-up experiment could give it the same plan in both formats.
+In other words, a perfectly valid action-item field can carry a request that came from a document and that the user never authorised. The text in that field might still say where it came from, but the schema does not require it to. This is a small instance of the provenance problem studied by \citet{multicamel}. A natural follow-up would hand the executor the same plan in both formats, to see whether the format by itself changes what it does.
 
 \subsection{Warnings in agent outputs}
-The keyword rule flagged 493/2,400 attacked DeepSeek workflows, 199/2,400 GLM workflows and 540/2,400 Qwen workflows. Of those flagged workflows, 3, 14 and 18, respectively, also met the attack success rule. A flag records a warning phrase in the output. These counts cannot tell us how often the agents recognised an attack or whether issuing a warning helped prevent it.
+Our keyword rule flagged 493 of 2,400 attacked DeepSeek workflows, 199 of 2,400 for GLM and 540 of 2,400 for Qwen. Only 3, 14 and 18 of those flagged workflows, respectively, also counted as successful attacks. A flag simply means a warning phrase appeared somewhere in the output. It does not tell us how often an agent really recognised the attack, or whether the warning is what stopped it.
 
 \section{Discussion and Limitations}
 \subsection{Implications for practitioners}
-For this task, a configuration that reduced redirection could still pass manipulated content into emails. Qwen also reversed the G1 ranking we saw with DeepSeek. Both findings matter when choosing a pipeline: its performance on each attack goal should be checked with the model and settings that will be used.
+The first lesson is that one attack goal does not stand in for another. A design that cut redirection could still let manipulated content straight into the email. The second is that the ranking of designs depends on the model: Qwen reversed the G1 ordering we saw on DeepSeek. Anyone choosing a pipeline should test it against each attack goal, on the model and settings they actually plan to use.
 
-The gateway checks the recipients at the point where the email would be sent. Its protection comes from comparing the recipients with the authorised list, even when the executor proposes a different address. An email body containing an injected link may still pass this check. Applications that need to control outgoing links or attachments would have to define separate checks and test whether legitimate sends can recover after a rejection.
+The gateway works because it checks recipients at the very last moment, against a list the model cannot change, whatever address the executor proposes. It does nothing about what is in the email, so a body carrying an injected link passes straight through. Applications that care about outgoing links or attachments need their own checks for those, and should test that legitimate sends can still recover after a rejection.
 
-A schema can verify that an action item has the expected fields. The executor still needs a basis for determining whether the user authorised that action. The same issue applies when the executor receives the original request: visibility gives it information it can use, while a policy check can make comparison with the request a condition of sending.
+Finally, a schema can confirm that an action item is well formed, but not that the user asked for it. The executor still needs some way of knowing what was authorised. The same goes for showing the executor the original request: that gives it information it could use, but only a policy check makes comparing the plan with the request a condition of sending.
 
 \subsection{Limitations}
 \paragraph{What the comparisons isolate.}
-A and the pipelines differ in prompts, context separation, tool permissions and how many calls agents can make. The text and JSON protocols also differ in several ways at once. The development trials on A may have influenced which attacks were included. The gateway ran in a separate batch with one repeat, and provider and run date vary across the model runs. These factors limit how much of the observed differences we can attribute to any one design choice.
+A and the pipelines differ in prompts, context separation, tool permissions and the number of calls available. The text and JSON protocols also differ in several respects at once. Our development trials on A may have shaped which attacks made it into the final set. The gateway ran in its own batch with one repeat, and the provider and date differ between model runs. All of this limits how confidently we can pin any difference on a single design choice.
 
 \paragraph{What the scoring rules capture.}
-G1 records sends to the specified attacker address. The G2 rule can misclassify a link that the email explicitly recommends avoiding, and a summary can mention all three expected facts while still containing errors. A handoff can also quote an address without recommending a send to it. We report the automatic scores without an estimate of agreement between independent human reviewers.
+G1 only records sends to the specific attacker address. The G2 rule can misread an email that mentions the link in order to tell people to avoid it, and a summary can contain all three expected facts and still get other things wrong. A handoff can quote an address without suggesting anyone send to it. All of our scores are automatic, and we have no estimate of how well independent human reviewers would agree with them.
 
 \paragraph{Uncertainty.}
-The paired analysis draws on thirty distinct scenarios. Extra templates and repeats provide more observations within each scenario. The intervals are approximate and cover individual comparisons. An interval containing zero leaves the size and direction of the effect uncertain. Format failures prevent task completion as well as attacks, so lower attack rates should be read alongside completion rates.
+The paired analysis rests on thirty distinct scenarios; the extra templates and repeats add observations within each scenario, not new scenarios. The intervals are approximate and apply to each comparison on its own. Where an interval includes zero, both the size and the direction of the effect are uncertain. Format failures block the task as well as the attack, so a lower attack rate should always be read next to the completion rate.
 
 \paragraph{External validity.}
-The setting is a single synthetic task family with short documents and a fixed attacker. It does not test adaptive attacks, long-term memory, heterogeneous-model pipelines, real mail systems or arbitrary organisations. Endpoint defaults and changing service behaviour constrain reproducibility. Additional models broaden observed behaviour without making the results representative of all assistants.
+This is one synthetic task family with short documents and a fixed attacker. We did not test adaptive attacks, long-term memory, pipelines mixing different models, real mail systems or real organisations. Adding two models widens the picture, but three models are not a representative sample of assistants.
 
 \subsection{Future work}
-The most informative follow-up would replay matched content across formats and vary provenance retention while holding the underlying plan fixed. This could distinguish filtering from downstream adoption. Further work should complete independent semantic annotation, test explicit request-to-plan checks, evaluate content policies alongside recipient policies, and use an adaptive attacker with held-out tasks. Any new run should preserve its protocol, code and endpoint provenance separately from the present datasets.
+The most useful next step would be to replay identical content in both formats, and to vary how much provenance is kept while holding the underlying plan fixed. That would separate filtering from downstream adoption. Beyond that, we would like to complete an independent semantic annotation of the handoffs, test an explicit check of the plan against the request, add content policies alongside the recipient policy, and run an adaptive attacker on held-out tasks.
 
 \section{Conclusion}
-Splitting the workflow lowered recipient redirection with DeepSeek. With Qwen, the JSON pipelines were redirected more often than the single agent. The handoff logs show where addresses were dropped and which transferred addresses reached a send, leaving the cause of the reversal open. The recipient allowlist enforced one property across all five configurations in the gateway run: no simulated email went to the attacker address. Protecting the contents of emails to authorised recipients remains a separate problem.
+On DeepSeek, splitting the workflow between agents reduced recipient redirection. On Qwen, the JSON pipelines were redirected more often than the single agent. The handoff logs show where the attacker's address was dropped and which surviving addresses ended up in a sent email, but they do not settle why the result reversed. The one guarantee that held everywhere came from outside the models: in the gateway run, the recipient allowlist ensured that no simulated email reached the attacker in any of the five configurations. Keeping the content of emails to the right people free of manipulation is a separate problem, and one that none of our designs solved.
 
 \paragraph{Reproducibility and ethics.}
-The four \texttt{results/test-*} batches are available in the \href{https://github.com/HaroldLui/COMP7611-Group-Project/tree/dbaa62949eef37b0d7e65e0cf823c31b132be54f/results}{archived repository snapshot} \citep{project}. The offline analysis uses stored workflow scores and marker-presence indicators derived from the transferred handoffs. The preregistration and run metadata document the development, original test and exploratory runs. The reported results use the four test batches. All people and organisations are fictional, attacker markers use \texttt{.example} domains, and all send outcomes are simulated.
+The four \texttt{results/test-*} batches are available in an \href{https://github.com/HaroldLui/COMP7611-Group-Project/tree/dbaa62949eef37b0d7e65e0cf823c31b132be54f/results}{archived repository snapshot} \citep{project}. Our offline analysis uses the stored workflow scores and marker-presence indicators taken from the transferred handoffs. Everyone and every organisation in the scenarios is fictional, attacker markers use \texttt{.example} domains, and every send was simulated.
 
 % ---------------------------------------------------------------- References (APA 7th)
 % Alphabetical by first author; same first author ordered by subsequent authors.

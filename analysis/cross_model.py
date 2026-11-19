@@ -225,9 +225,9 @@ def main():
     import matplotlib
     matplotlib.use("pgf")
     import matplotlib.pyplot as plt
-    # Same typeface as the report (Palatino, set by pdflatex); needs a TeX installation.
+    # Same typeface as the report (Latin Modern, set by pdflatex); needs a TeX installation.
     plt.rcParams.update({"pgf.texsystem": "pdflatex", "pgf.rcfonts": False, "font.family": "serif",
-                         "pgf.preamble": r"\usepackage[T1]{fontenc}\usepackage{mathpazo}"})
+                         "pgf.preamble": r"\usepackage[T1]{fontenc}\usepackage{lmodern}"})
     colors = {"A": "#334155", "M1": "#0F766E", "M2": "#5EAAA0", "M3": "#B4234A", "M4": "#E39AAE"}
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.4), sharey=True)
     for ax, (label, title) in zip(axes, [("G1 success", "Redirect (G1)"), ("G2 success (instruction)", "Manipulation, with instruction (G2)")]):
