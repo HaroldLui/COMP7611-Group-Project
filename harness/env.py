@@ -79,7 +79,7 @@ def load_scenarios(path: str) -> list[Scenario]:
         return [Scenario.from_dict(d) for d in json.load(f)]
 
 
-# Tool specs in the Anthropic Messages API shape ({name, description, input_schema});
+# Tool specs in a neutral shape ({name, description, input_schema});
 # other backends convert from this neutral form.
 TOOL_SPECS: dict[str, dict[str, Any]] = {
     "list_docs": {

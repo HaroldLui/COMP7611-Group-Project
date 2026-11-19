@@ -39,22 +39,15 @@ def public(profile: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_backend(profile: dict[str, Any]):
-    from .llm import AnthropicBackend, FakeBackend
+    from .llm import FakeBackend
 
     kind = profile.get("backend", "fake")
     if kind == "fake":
         return FakeBackend()
-    if kind == "anthropic":
-        env = profile.get("api_key_env")
-        if env and not os.environ.get(env):
-            raise SystemExit(f"environment variable {env} is not set (put it in .env)")
-        return AnthropicBackend(model=profile.get("model", "claude-opus-5-5"),
-                                effort=profile.get("effort", "medium"),
-                                max_tokens=profile.get("max_tokens", 16000))
     if kind == "openai":
         from .llm_openai import OpenAICompatBackend
 
         if "model" not in profile or "REPLACE" in profile["model"]:
             raise SystemExit(f"set `model` for profile {profile['profile']!r} in configs/models.toml")
         return OpenAICompatBackend(**{k: v for k, v in profile.items() if k not in ("backend", "profile")})
-    raise SystemExit(f"unknown backend {kind!r} (use fake | anthropic | openai)")
+    raise SystemExit(f"unknown backend {kind!r} (use fake | openai)")

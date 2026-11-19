@@ -15,8 +15,6 @@
 #   reasoning_effort  optional, for reasoning models that accept it
 #   seed              optional, if the provider supports it
 #   extra_body        optional table of provider-specific fields
-#
-# Fields for backend = "anthropic": model, effort, max_tokens, api_key_env.
 
 [profiles.fake]                 # offline plumbing test, no key needed
 backend = "fake"
@@ -62,9 +60,3 @@ backend = "openai"
 base_url = "http://localhost:11434/v1"
 api_key_env = "LOCAL_API_KEY"   # any non-empty value, e.g. LOCAL_API_KEY=ollama
 model = "REPLACE_WITH_MODEL_NAME"
-
-[profiles.claude]
-backend = "anthropic"
-api_key_env = "ANTHROPIC_API_KEY"
-model = "claude-opus-5-5"
-effort = "medium"

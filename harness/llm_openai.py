@@ -3,7 +3,7 @@
 Covers OpenAI, DeepSeek, Qwen (DashScope), Gemini's OpenAI-compatible endpoint, OpenRouter,
 and local servers (Ollama, vLLM, LM Studio). The model must support function/tool calling.
 
-The harness keeps history in the Anthropic-style block format (see harness/llm.py); this
+The harness keeps history in a neutral block format (see harness/llm.py); this
 module converts that history to Chat Completions messages on every call.
 """
 
