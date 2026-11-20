@@ -1,0 +1,5 @@
+[profiles.deepseek]
+backend = "openai"
+base_url = "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+api_key_env = "DEEPSEEK_API_KEY"
+model = "deepseek-v4.1-flash"

@@ -1,0 +1,68 @@
+{
+  "model": "qwen3.8-flash",
+  "provider": "Aliyun Token Plan",
+  "code_commit": "26ceac62925311b6217603c3feac03d94d35e106",
+  "episodes": 2700,
+  "unique_keys": 2700,
+  "missing_keys": 0,
+  "unexpected_keys": 0,
+  "record_status_counts": {
+    "ok": 2698,
+    "format_failure": 2
+  },
+  "returned_models": [
+    "qwen3.8-flash"
+  ],
+  "raw_episodes_sha256": "4daf21e00194c9b9de38bf5efbdbfd00483294e35ef9c7e4bed6618d3592c587",
+  "checkpoint_prefix_rows": 41,
+  "files": {
+    "by_config.csv": {
+      "bytes": 1796,
+      "sha256": "9f4c19f91d66ef3fa3126d582a96e4389b9b4c9c3ebaa37ec81b36a644c96c2e"
+    },
+    "compatibility-check.json": {
+      "bytes": 190,
+      "sha256": "800bf2d65c64c8f1b8eded23900fec5e83cccd6519cc9cdd23f42f93e9336195"
+    },
+    "episodes.jsonl.gz": {
+      "bytes": 3261345,
+      "sha256": "71c52593606b690c145c98c21e12684a6ed85d44c9675f34d37c49a53f5ccafe"
+    },
+    "execution-checkpoints/20261113T141102Z/audit.json": {
+      "bytes": 532,
+      "sha256": "1b32141537c86a7364421320b903f81a18ed12d0ab165416ce2e08f30377b2a1"
+    },
+    "execution-checkpoints/20261113T141102Z/episodes.before-workers8.jsonl.gz": {
+      "bytes": 53676,
+      "sha256": "aed82e41ac1e29bb81ff171646135c8cc5f280e6a6db918b767ee9fb04f9dc79"
+    },
+    "execution-checkpoints/20261113T141102Z/job_status.json": {
+      "bytes": 352,
+      "sha256": "1ce0545be6471bd314f9311944abe3438fdc72efc9e61bf918adba3e5ca3480c"
+    },
+    "execution-checkpoints/20261113T141102Z/run_args.json": {
+      "bytes": 1182,
+      "sha256": "c635ddb7a926980bb6c395bc47d28866145a7fa63707ee0303d0e948b9c1ea4e"
+    },
+    "execution-history.jsonl": {
+      "bytes": 517,
+      "sha256": "64ce484171d90f4107b55a47e93efb8f48a3a67e8c48169d52204e27f6f5230d"
+    },
+    "job_status.json": {
+      "bytes": 418,
+      "sha256": "0e9cbe765cdc73b8d5e283393a33e85362b9390520fc8caed3fc28747833f225"
+    },
+    "model-profile.toml": {
+      "bytes": 186,
+      "sha256": "11f4346bfd1b3e830a6b27097632770812332c23368927b842ecef232e3c01e8"
+    },
+    "run_args.json": {
+      "bytes": 1182,
+      "sha256": "10484ff3cdc06e9b6bb276c2752a010281b433828abfa231c82585fbe017fa76"
+    },
+    "summary.md": {
+      "bytes": 4807,
+      "sha256": "f86fe399c5bec4f0fe55b614b2a46ffc652c0ddd9aa53d349f33bb150e049262"
+    }
+  }
+}

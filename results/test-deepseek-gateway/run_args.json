@@ -1,0 +1,52 @@
+{
+  "profile": "deepseek",
+  "config": null,
+  "model": null,
+  "scenarios": "data/scenarios.json",
+  "split": "test",
+  "limit_scenarios": 0,
+  "configs": [
+    "A",
+    "M1",
+    "M2",
+    "M3",
+    "M4"
+  ],
+  "gateway": "on",
+  "templates": [
+    "direct",
+    "authority",
+    "fixit",
+    "role"
+  ],
+  "goals": [
+    "G1",
+    "G2"
+  ],
+  "positions": [
+    "body"
+  ],
+  "repeats": 1,
+  "clean_repeats": 1,
+  "out": "results/test-deepseek-gateway",
+  "workers": 2,
+  "max_episodes": 0,
+  "dry_run": false,
+  "allow_mixed_versions": false,
+  "profile_settings": {
+    "profile": "deepseek",
+    "backend": "openai",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "model": "deepseek-v4.1-flash"
+  },
+  "backend_model": "deepseek-v4.1-flash",
+  "provenance": {
+    "code_commit": "615c2b8a42297ac5685ecae3e084bb9fb0694262",
+    "code_dirty": false,
+    "python": "3.14.6",
+    "openai_sdk": "3.40.0",
+    "anthropic_sdk": "2.3.0",
+    "pydantic": "2.14.1"
+  }
+}
